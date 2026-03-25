@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #075E80;
+  --color-primary-dark: #054660;
+  --color-primary-light: #0a76a0;
+  --color-brand-blue: #075E80;
+}
+
+:root {
+  font-family: 'Inter', 'Work Sans', sans-serif;
+  background-color: #f4f7f9;
+  color: #1a2a47;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+input,
+select,
+textarea {
+  @apply border border-slate-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all bg-white;
+}
+
+button.btn-primary {
+  @apply bg-[#075E80] hover:bg-primary-dark text-white font-semibold px-6 py-3 rounded-lg transition-all transform active:scale-95 shadow-md hover:shadow-lg flex items-center justify-center gap-2;
+}
+
+button.btn-secondary {
+  @apply bg-white hover:bg-slate-50 text-slate-700 font-medium px-6 py-3 rounded-lg border border-slate-200 transition-all flex items-center justify-center gap-2;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-8;
+}
+
+.table-container {
+  @apply overflow-x-auto border border-slate-100 rounded-2xl bg-white shadow-sm overflow-hidden;
+}
+
+table {
+  @apply w-full text-left border-collapse;
+}
+
+th {
+  @apply bg-slate-50/50 text-[#075E80] font-bold text-xs uppercase tracking-wider px-6 py-5 border-b border-slate-100;
+}
+
+td {
+  @apply px-6 py-5 border-b border-slate-100 text-slate-700;
+}
+
+tr:last-child td {
+  @apply border-b-0;
+}
+
+tr:hover td {
+  @apply bg-slate-50/40;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply bg-white/70 backdrop-blur-md border border-white/20;
+}
+
+.leoni-header {
+  @apply h-20 bg-white border-b border-slate-100 flex items-center justify-between px-10 sticky top-0 z-30;
+}
+
+.leoni-sidebar {
+  @apply bg-[#075E80] text-white transition-all duration-300 flex flex-col shadow-2xl z-40;
+}
+
+/* Custom scrollbar for a premium look */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

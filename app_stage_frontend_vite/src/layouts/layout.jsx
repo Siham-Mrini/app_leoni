@@ -1,0 +1,139 @@
+import { Link, useLocation } from 'react-router-dom';
+import {
+    LayoutDashboard,
+    User,
+    Package,
+    MapPin,
+    Users,
+    ShoppingCart,
+    ArrowLeftRight,
+    Wrench,
+    History,
+    LogOut,
+    Menu,
+    X,
+    Shield
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import ProfessionalSignature from '../components/ProfessionalSignature';
+import ErrorBoundary from '../components/ErrorBoundary';
+
+const Layout = ({ children }) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const { user, logout } = useAuth();
+
+    const baseMenuItems = [
+        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+        { name: 'Produits', path: '/produits', icon: Package },
+        { name: 'Sites', path: '/sites', icon: MapPin },
+        { name: 'Fournisseurs', path: '/fournisseurs', icon: Users },
+        { name: 'Commandes', path: '/commandes', icon: ShoppingCart },
+        { name: 'Transferts', path: '/transferts', icon: ArrowLeftRight },
+        { name: 'Installations', path: '/installations', icon: Wrench },
+        { name: 'Utilisateurs', path: '/utilisateurs', icon: Shield },
+        { name: 'Historique', path: '/historique', icon: History },
+        { name: 'Profile', path: '/profile', icon: User },
+    ];
+
+    const menuItems = baseMenuItems.filter(item => {
+        if (!user) return false;
+        const userRole = user.role?.toLowerCase();
+        if (userRole === 'admin') return true;
+        if (userRole === 'employe' || userRole === 'employé') {
+            return !['Utilisateurs'].includes(item.name);
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        const currentItem = baseMenuItems.find(item => item.path === location.pathname);
+        if (currentItem) {
+            document.title = `LEONI - ${currentItem.name}`;
+        }
+    }, [location.pathname]);
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
+    };
+
+    const isActive = (path) => location.pathname === path;
+
+    const userInitials = user ? `${user.nom?.[0] || ''}${user.prenom?.[0] || ''}`.toUpperCase() : '??';
+    const fullName = user ? `${user.nom} ${user.prenom}` : 'Utilisateur';
+
+    return (
+        <div className="flex h-screen bg-[#f4f7f9] overflow-hidden">
+            {/* Sidebar */}
+            <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-[#075E80] text-white transition-all duration-300 flex flex-col z-40`}>
+                <div className="p-6 flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
+                    </div>
+                </div>
+
+                <nav className="flex-1 px-3 mt-4 space-y-1 overflow-y-auto custom-scrollbar">
+                    {menuItems.map((item) => (
+                        <Link
+                            key={item.name}
+                            to={item.path}
+                            className={`flex items-center p-3 rounded-xl transition-all group ${isActive(item.path)
+                                ? 'bg-white text-[#075E80] font-bold'
+                                : 'text-white/70 hover:bg-white/5 hover:text-white'
+                                }`}
+                        >
+                            <item.icon className={`${sidebarOpen ? 'mr-3' : 'mx-auto'} w-5 h-5`} />
+                            {sidebarOpen && <span className="text-sm">{item.name}</span>}
+                        </Link>
+                    ))}
+                </nav>
+
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-30">
+                    <div className="flex items-center gap-8">
+                        <img src="/leoni_logo.png" alt="LEONI" className="h-6 w-auto" />
+                        <div className="h-6 w-px bg-slate-200"></div>
+                        <img src="/opex_logo.png" alt="OPEX" className="h-6 w-auto" />
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
+                            <div className="w-10 h-10 rounded-full bg-[#075E80] text-white flex items-center justify-center font-bold text-sm">
+                                {userInitials}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-black text-[#075E80] leading-none uppercase tracking-wider">{fullName}</span>
+                                <span className="text-[10px] text-emerald-500 font-bold mt-1">Connecté</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar relative">
+                    <div className="pb-16">
+                        <ErrorBoundary>
+                            {children}
+                        </ErrorBoundary>
+                    </div>
+                </main>
+
+                <footer className="h-14 bg-white/70 backdrop-blur-md border-t border-slate-100 flex items-center px-8 z-30">
+                    <div className="w-full">
+                        <ProfessionalSignature />
+                    </div>
+                </footer>
+            </div>
+        </div>
+    );
+};
+
+export default Layout;
