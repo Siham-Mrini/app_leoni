@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'site' => \App\Http\Middleware\CheckSite::class,
             'role' => \App\Http\Middleware\CheckRole::class,
         ]);
+
+        // Allow CORS for the Netlify frontend
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
