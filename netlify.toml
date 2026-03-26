@@ -1,0 +1,8 @@
+[build]
+  command = "cd app_stage_frontend_vite && npm install && npm run build"
+  publish = "app_stage_frontend_vite/dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
