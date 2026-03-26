@@ -21,7 +21,7 @@ class LeoniSeeder extends Seeder
         ];
 
         foreach ($sites as $siteData) {
-            Site::create($siteData);
+            Site::firstOrCreate(['name' => $siteData['name']], $siteData);
         }
 
         $bouskoura = Site::where('name', 'LEONI Wiring Systems')->first();
@@ -33,7 +33,7 @@ class LeoniSeeder extends Seeder
         ];
 
         foreach ($suppliers as $supData) {
-            Supplier::create($supData);
+            Supplier::firstOrCreate(['name' => $supData['name']], $supData);
         }
 
         $techSup = Supplier::where('name', 'TechSolutions SARL')->first();
@@ -59,28 +59,32 @@ class LeoniSeeder extends Seeder
         ];
 
         foreach ($products as $prodData) {
-            Product::create($prodData);
+            Product::firstOrCreate(['part_number' => $prodData['part_number']], $prodData);
         }
 
         // 4. Create Users
-        User::create([
-            'nom' => 'Admin',
-            'prenom' => 'System',
-            'name' => 'admin',
-            'email' => 'admin@leoni.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'site_id' => $bouskoura->id,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@leoni.com'],
+            [
+                'nom' => 'Admin',
+                'prenom' => 'System',
+                'name' => 'admin',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'site_id' => $bouskoura->id,
+            ]
+        );
 
-        User::create([
-            'nom' => 'Agent',
-            'prenom' => 'Local',
-            'name' => 'agent',
-            'email' => 'agent@leoni.com',
-            'password' => Hash::make('password'),
-            'role' => 'employe',
-            'site_id' => $bouskoura->id,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'agent@leoni.com'],
+            [
+                'nom' => 'Agent',
+                'prenom' => 'Local',
+                'name' => 'agent',
+                'password' => Hash::make('password'),
+                'role' => 'employe',
+                'site_id' => $bouskoura->id,
+            ]
+        );
     }
 }
