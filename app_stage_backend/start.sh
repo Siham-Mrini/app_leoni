@@ -15,11 +15,12 @@ elif [ ! -z "$DATABASE_URL" ]; then
 fi
 
 # Fallback sur les variables individuelles de Railway
-export DB_HOST=${MYSQLHOST:-${DB_HOST}}
-export DB_PORT=${MYSQLPORT:-${DB_PORT:-3306}}
-export DB_DATABASE=${MYSQLDATABASE:-${DB_DATABASE}}
-export DB_USERNAME=${MYSQLUSER:-${DB_USERNAME}}
-export DB_PASSWORD=${MYSQLPASSWORD:-${DB_PASSWORD}}
+# On ajoute le support pour les noms avec underscore et les noms de proxy Railway
+export DB_HOST=${RAILWAY_TCP_PROXY_DOMAIN:-${MYSQLHOST:-${MYSQL_HOST:-${DB_HOST}}}}
+export DB_PORT=${RAILWAY_TCP_PROXY_PORT:-${MYSQLPORT:-${MYSQL_PORT:-${DB_PORT:-3306}}}}
+export DB_DATABASE=${MYSQL_DATABASE:-${MYSQLDATABASE:-${DB_DATABASE}}}
+export DB_USERNAME=${MYSQL_USER:-${MYSQLUSER:-${DB_USERNAME}}}
+export DB_PASSWORD=${MYSQL_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-${DB_PASSWORD}}}}
 
 # Vérifier l'APP_KEY
 if [ -z "$APP_KEY" ]; then
