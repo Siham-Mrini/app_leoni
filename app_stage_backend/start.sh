@@ -29,6 +29,8 @@ fi
 
 echo "Démarrage des migrations et seeds..."
 php artisan config:clear
+php artisan route:clear
+php artisan cache:clear
 php artisan migrate --force
 php artisan db:seed --force
 echo "--- Fin de configuration ---"
