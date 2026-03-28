@@ -63,7 +63,7 @@ class LeoniSeeder extends Seeder
         }
 
         // 4. Create Users
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@leoni.com'],
             [
                 'nom' => 'Admin',
@@ -75,7 +75,7 @@ class LeoniSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'agent@leoni.com'],
             [
                 'nom' => 'Agent',
