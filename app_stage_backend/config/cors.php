@@ -23,6 +23,7 @@ return [
         'http://localhost:5173',
         'http://localhost:3000',
         'https://jade-praline-e289ee.netlify.app',
+        'https://leonimaroc.netlify.app',
     ],
 
     'allowed_origins_patterns' => ['https://*.netlify.app'],

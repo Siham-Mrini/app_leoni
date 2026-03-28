@@ -62,6 +62,8 @@ class LeoniSeeder extends Seeder
             Product::firstOrCreate(['part_number' => $prodData['part_number']], $prodData);
         }
 
+        $site = Site::firstOrCreate(['name' => 'LEONI Wiring Systems'], ['location' => 'Bouskoura']);
+
         // 4. Create Users
         User::updateOrCreate(
             ['email' => 'admin@leoni.com'],
@@ -71,7 +73,7 @@ class LeoniSeeder extends Seeder
                 'name' => 'admin',
                 'password' => Hash::make('password'),
                 'role' => 'admin',
-                'site_id' => $bouskoura->id,
+                'site_id' => $site->id,
             ]
         );
 
@@ -83,7 +85,7 @@ class LeoniSeeder extends Seeder
                 'name' => 'agent',
                 'password' => Hash::make('password'),
                 'role' => 'employe',
-                'site_id' => $bouskoura->id,
+                'site_id' => $site->id,
             ]
         );
     }
