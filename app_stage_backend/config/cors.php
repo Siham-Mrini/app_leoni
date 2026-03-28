@@ -19,12 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'https://jade-praline-e289ee.netlify.app',
-        'https://leonimaroc.netlify.app',
-    ],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => ['https://*.netlify.app'],
 
@@ -34,6 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 ];
