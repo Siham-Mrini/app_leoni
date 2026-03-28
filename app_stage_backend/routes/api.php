@@ -57,6 +57,20 @@ Route::middleware('auth:sanctum')->group(function () {
                 Route::get('sites/{site}', [SiteController::class , 'show']);
                 Route::get('suppliers', [SupplierController::class , 'index']);
                 Route::get('suppliers/{supplier}', [SupplierController::class , 'show']);
-            }
-            );
         });
+});
+
+Route::get('/test-db', function() {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $admin = \App\Models\User::where('email', 'admin@leoni.com')->first();
+        return response()->json([
+            'database' => 'connected',
+            'admin_exists' => $admin ? 'yes' : 'no',
+            'user_count' => \App\Models\User::count(),
+            'app_key_set' => !empty(config('app.key')),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
