@@ -175,7 +175,7 @@ const Transferts = () => {
                             (t.to_site?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
                         )
                         .map((transfer) => (
-                        <div key={transfer.id} className="bg-white rounded-[4rem] p-12 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-900/5 transition-all group relative overflow-hidden">
+                        <div key={transfer.id} className="bg-white rounded-3xl lg:rounded-[4rem] p-6 lg:p-12 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-900/5 transition-all group relative overflow-hidden">
                             <div className={`absolute top-0 left-0 w-4 h-full ${
                                 transfer.status === 'reçu' ? 'bg-emerald-500' : 
                                 transfer.status === 'refusé' ? 'bg-rose-500' : 
@@ -183,9 +183,9 @@ const Transferts = () => {
                                 'bg-amber-400 animate-pulse'
                             }`}></div>
                             
-                            <div className="flex flex-col xl:flex-row justify-between items-center gap-12">
+                            <div className="flex flex-col xl:flex-row justify-between items-center gap-8 lg:gap-12">
                                 <div className="flex-1 w-full relative">
-                                    <div className="flex items-center gap-4 mb-10">
+                                    <div className="flex flex-wrap items-center gap-3 lg:gap-4 mb-8 lg:mb-10">
                                         <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${
                                             transfer.status === 'reçu' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 
                                             transfer.status === 'refusé' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 
@@ -204,92 +204,93 @@ const Transferts = () => {
                                                 {transfer.to_site_id === user.site_id ? 'Entrant' : 'Sortant'}
                                             </span>
                                         )}
-                                        <span className="text-slate-300 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                            <Hash size={12} /> ID-TRF-{transfer.id.toString().padStart(5, '0')}
-                                        </span>
-                                        {transfer.transfer_date && (
-                                            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg">
-                                                <Calendar size={12} /> {transfer.transfer_date}
-                                            </span>
-                                        )}
-                                    </div>
+                                         <span className="text-slate-300 font-black text-[9px] lg:text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                            <Hash size={12} /> TRF-{transfer.id.toString().padStart(5, '0')}
+                                         </span>
+                                         {transfer.transfer_date && (
+                                             <span className="text-slate-400 font-bold text-[9px] lg:text-[10px] uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg">
+                                                 <Calendar size={12} /> {transfer.transfer_date}
+                                             </span>
+                                         )}
+                                     </div>
 
-                                    <div className="flex items-center justify-between gap-8 xl:gap-16 relative">
-                                        <div className="flex flex-col items-center gap-5 w-1/3 group/node">
-                                            <div className="w-20 h-20 bg-slate-50 text-slate-300 rounded-[2rem] flex items-center justify-center border border-slate-100 group-hover/node:scale-110 transition-all shadow-inner">
-                                                <MapPin size={28} />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 leading-none">Émetteur</p>
-                                                <p className="font-black text-slate-900 text-lg leading-tight tracking-tight">{transfer.from_site?.name}</p>
-                                            </div>
-                                        </div>
+                                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6 lg:gap-16 relative">
+                                         <div className="flex flex-col items-center gap-3 lg:gap-5 w-full sm:w-1/3 group/node">
+                                             <div className="w-16 h-16 lg:w-20 lg:h-20 bg-slate-50 text-slate-300 rounded-2xl lg:rounded-[2rem] flex items-center justify-center border border-slate-100 group-hover/node:scale-110 transition-all shadow-inner">
+                                                 <MapPin size={24} />
+                                             </div>
+                                             <div className="text-center">
+                                                 <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1 lg:mb-2 leading-none">Émetteur</p>
+                                                 <p className="font-black text-slate-900 text-base lg:text-lg leading-tight tracking-tight">{transfer.from_site?.name}</p>
+                                             </div>
+                                         </div>
 
-                                        <div className="flex-1 flex flex-col items-center relative py-10">
-                                            <div className="w-full h-1 bg-slate-50 flex items-center justify-center relative">
-                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100 to-transparent"></div>
-                                                <div className="w-28 h-28 bg-white border-4 border-slate-50 rounded-full flex flex-col items-center justify-center shadow-xl relative z-10 group-hover:scale-110 transition-all">
-                                                    <span className="text-4xl font-black text-[#1a2b4b] tracking-tighter leading-none">{transfer.quantity}</span>
-                                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">Volume</span>
-                                                </div>
-                                                <div className={`absolute right-0 top-1/2 -mt-5 w-10 h-10 flex items-center justify-center rounded-full ${transfer.status === 'reçu' ? 'text-emerald-500' : 'text-amber-500 animate-[bounce_1.5s_infinite]'}`}>
-                                                    <ArrowRight size={32} strokeWidth={3} />
-                                                </div>
-                                            </div>
-                                        </div>
+                                         <div className="flex-1 w-full flex flex-col items-center relative py-4 lg:py-10">
+                                             <div className="w-full h-1 bg-slate-50 flex items-center justify-center relative">
+                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100 to-transparent"></div>
+                                                 <div className="w-20 h-20 lg:w-28 lg:h-28 bg-white border-4 border-slate-50 rounded-full flex flex-col items-center justify-center shadow-xl relative z-10 group-hover:scale-110 transition-all">
+                                                     <span className="text-2xl lg:text-4xl font-black text-[#1a2b4b] tracking-tighter leading-none">{transfer.quantity}</span>
+                                                     <span className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1 lg:mt-2">Volume</span>
+                                                 </div>
+                                                 <div className={`absolute right-4 sm:right-0 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full ${transfer.status === 'reçu' ? 'text-emerald-500' : 'text-amber-500 animate-[bounce_1.5s_infinite]'}`}>
+                                                     <ArrowRight size={28} className="sm:hidden -rotate-90 sm:rotate-0" />
+                                                     <ArrowRight size={32} strokeWidth={3} className="hidden sm:block" />
+                                                 </div>
+                                             </div>
+                                         </div>
 
-                                        <div className="flex flex-col items-center gap-5 w-1/3 group/node">
-                                            <div className="w-20 h-20 bg-blue-50 text-[#1a2b4b] rounded-[2rem] flex items-center justify-center border border-blue-100 group-hover/node:scale-110 transition-all shadow-2xl shadow-blue-900/10">
-                                                <MapPin size={28} />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-2 leading-none">Récepteur</p>
-                                                <p className="font-black text-slate-900 text-lg leading-tight tracking-tight">{transfer.to_site?.name}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                         <div className="flex flex-col items-center gap-3 lg:gap-5 w-full sm:w-1/3 group/node">
+                                             <div className="w-16 h-16 lg:w-20 lg:h-20 bg-blue-50 text-[#1a2b4b] rounded-2xl lg:rounded-[2rem] flex items-center justify-center border border-blue-100 group-hover/node:scale-110 transition-all shadow-2xl shadow-blue-900/10">
+                                                 <MapPin size={24} />
+                                             </div>
+                                             <div className="text-center">
+                                                 <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-1 lg:mb-2 leading-none">Récepteur</p>
+                                                 <p className="font-black text-slate-900 text-base lg:text-lg leading-tight tracking-tight">{transfer.to_site?.name}</p>
+                                             </div>
+                                         </div>
+                                     </div>
 
-                                    <div className="mt-12 pt-8 border-t border-slate-50">
-                                        <div className="flex items-center justify-between relative px-12">
-                                            <div className="absolute top-1/2 left-24 right-24 h-1 bg-slate-100 -translate-y-1/2"></div>
-                                            <div className="absolute top-1/2 left-24 h-1 bg-[#1a2b4b] -translate-y-1/2 transition-all duration-1000" style={{ 
-                                                width: transfer.status === 'reçu' ? '100%' : transfer.status === 'en cours' ? '50%' : '0%',
-                                                opacity: (transfer.status === 'refusé' || transfer.status === 'annulé') ? 0.3 : 1
-                                            }}></div>
-                                            
-                                            {[
-                                                { id: 'demande', label: 'Initié', icon: <Send size={12} /> },
-                                                { id: 'en cours', label: 'En Transit', icon: <Truck size={12} /> },
-                                                { id: 'reçu', label: 'Livré', icon: <Box size={12} /> }
-                                            ].map((step, idx) => {
-                                                const isDone = (transfer.status === 'reçu') || (transfer.status === 'en cours' && idx <= 1) || (idx === 0);
-                                                const isCurrent = (transfer.status === 'demande' && idx === 0) || (transfer.status === 'en cours' && idx === 1) || (transfer.status === 'reçu' && idx === 2);
-                                                return (
-                                                    <div key={step.id} className="relative z-10 flex flex-col items-center gap-3">
-                                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${isDone ? 'bg-[#1a2b4b] border-[#1a2b4b] text-white' : 'bg-white border-slate-100 text-slate-300'}`}>
-                                                            {step.icon}
-                                                        </div>
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest ${isCurrent ? 'text-[#1a2b4b]' : 'text-slate-400'}`}>{step.label}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
+                                     <div className="mt-10 lg:mt-12 pt-6 lg:pt-8 border-t border-slate-50">
+                                         <div className="flex items-center justify-between relative px-4 lg:px-12">
+                                             <div className="absolute top-1/2 left-10 lg:left-24 right-10 lg:right-24 h-1 bg-slate-100 -translate-y-1/2"></div>
+                                             <div className="absolute top-1/2 left-10 lg:left-24 h-1 bg-[#1a2b4b] -translate-y-1/2 transition-all duration-1000" style={{ 
+                                                 width: transfer.status === 'reçu' ? '100%' : transfer.status === 'en cours' ? '50%' : '0%',
+                                                 opacity: (transfer.status === 'refusé' || transfer.status === 'annulé') ? 0.3 : 1
+                                             }}></div>
+                                             
+                                             {[
+                                                 { id: 'demande', label: 'Initié', icon: <Send size={10} /> },
+                                                 { id: 'en cours', label: 'Transit', icon: <Truck size={10} /> },
+                                                 { id: 'reçu', label: 'Livré', icon: <Box size={10} /> }
+                                             ].map((step, idx) => {
+                                                 const isDone = (transfer.status === 'reçu') || (transfer.status === 'en cours' && idx <= 1) || (idx === 0);
+                                                 const isCurrent = (transfer.status === 'demande' && idx === 0) || (transfer.status === 'en cours' && idx === 1) || (transfer.status === 'reçu' && idx === 2);
+                                                 return (
+                                                     <div key={step.id} className="relative z-10 flex flex-col items-center gap-2 lg:gap-3">
+                                                         <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl lg:rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${isDone ? 'bg-[#1a2b4b] border-[#1a2b4b] text-white' : 'bg-white border-slate-100 text-slate-300'}`}>
+                                                             {step.icon}
+                                                         </div>
+                                                         <span className={`text-[7px] lg:text-[9px] font-black uppercase tracking-widest ${isCurrent ? 'text-[#1a2b4b]' : 'text-slate-400'}`}>{step.label}</span>
+                                                     </div>
+                                                 );
+                                             })}
+                                         </div>
+                                     </div>
+                                 </div>
 
-                                <div className="xl:w-1/3 w-full bg-slate-50/50 rounded-[3rem] p-10 space-y-8 border border-slate-50">
-                                    <div className="space-y-4">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Équipement</p>
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md border border-slate-50 text-[#1a2b4b]">
-                                                <Package size={28} />
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-slate-900 text-xl tracking-tighter leading-none mb-2">{transfer.product?.part_number}</p>
-                                                <span className="px-3 py-1 bg-white text-slate-400 text-[8px] font-black uppercase tracking-widest rounded-lg border border-slate-100">{transfer.product?.type}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                 <div className="xl:w-1/3 w-full bg-slate-50/50 rounded-3xl lg:rounded-[3rem] p-6 lg:p-10 space-y-6 lg:space-y-8 border border-slate-50">
+                                     <div className="space-y-3 lg:space-y-4">
+                                         <p className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Équipement</p>
+                                         <div className="flex items-center gap-4 lg:gap-6">
+                                             <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white rounded-xl lg:rounded-2xl flex items-center justify-center shadow-md border border-slate-50 text-[#1a2b4b] shrink-0">
+                                                 <Package size={22} lg:size={28} />
+                                             </div>
+                                             <div className="min-w-0">
+                                                 <p className="font-black text-slate-900 text-lg lg:text-xl tracking-tighter leading-none mb-1 lg:mb-2 truncate">{transfer.product?.part_number}</p>
+                                                 <span className="px-3 py-1 bg-white text-slate-400 text-[8px] font-black uppercase tracking-widest rounded-lg border border-slate-100">{transfer.product?.type}</span>
+                                             </div>
+                                         </div>
+                                     </div>
 
                                     <div className="space-y-4">
                                         {transfer.status === 'demande' && (
@@ -361,35 +362,36 @@ const Transferts = () => {
                 )}
             </div>
 
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-2xl p-4 animate-in fade-in duration-500">
-                    <div className="bg-white rounded-[4rem] shadow-2xl w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-12 border-b border-slate-50 flex justify-between items-start bg-slate-50/50">
-                            <div className="flex items-center gap-10">
-                                <div className="w-16 h-16 bg-[#1a2b4b] text-white rounded-2xl flex items-center justify-center">
-                                    <ArrowLeftRight size={32} />
+             {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-2xl p-4 animate-in fade-in duration-500 overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] lg:rounded-[4rem] shadow-2xl w-full max-w-3xl my-auto animate-in zoom-in-95 duration-300">
+                        <div className="p-6 lg:p-12 border-b border-slate-50 flex justify-between items-start bg-slate-50/50">
+                            <div className="flex items-center gap-6 lg:gap-10">
+                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-[#1a2b4b] text-white rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0">
+                                    <ArrowLeftRight size={24} className="lg:hidden" />
+                                    <ArrowLeftRight size={32} className="hidden lg:block" />
                                 </div>
-                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">Nouveau Transfert</h3>
+                                <h3 className="text-2xl lg:text-4xl font-black text-slate-900 tracking-tighter">Nouveau Transfert</h3>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="w-12 h-12 flex items-center justify-center bg-white text-slate-300 rounded-xl border border-slate-100 hover:text-rose-500 transition-colors">
+                            <button onClick={() => setShowModal(false)} className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center bg-white text-slate-300 rounded-xl border border-slate-100 hover:text-rose-500 transition-colors shrink-0">
                                 <XCircle size={24} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateTransfer} className="p-12 space-y-12">
+                        <form onSubmit={handleCreateTransfer} className="p-6 lg:p-12 space-y-8 lg:space-y-12">
                             {user?.role !== 'admin' && (
-                                <div className="flex gap-4">
-                                    <button type="button" onClick={() => setTransferType('pull')} className={`flex-1 h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${transferType === 'pull' ? 'bg-[#1a2b4b] text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Demander du stock (Pull)</button>
-                                    <button type="button" onClick={() => setTransferType('push')} className={`flex-1 h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${transferType === 'push' ? 'bg-[#1a2b4b] text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Envoyer du stock (Push)</button>
+                                <div className="flex gap-3 lg:gap-4">
+                                    <button type="button" onClick={() => setTransferType('pull')} className={`flex-1 h-12 lg:h-14 rounded-xl lg:rounded-2xl font-black text-[8px] lg:text-[10px] uppercase tracking-widest transition-all ${transferType === 'pull' ? 'bg-[#1a2b4b] text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Demander (Pull)</button>
+                                    <button type="button" onClick={() => setTransferType('push')} className={`flex-1 h-12 lg:h-14 rounded-xl lg:rounded-2xl font-black text-[8px] lg:text-[10px] uppercase tracking-widest transition-all ${transferType === 'push' ? 'bg-[#1a2b4b] text-white shadow-lg' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Envoyer (Push)</button>
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-10">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Site Source (Expéditeur)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                                <div className="space-y-2 lg:space-y-4">
+                                    <label className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 lg:ml-4">Site Source</label>
                                     <select required 
                                         disabled={user?.role !== 'admin' && transferType === 'push'}
-                                        className={`w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all ${(user?.role !== 'admin' && transferType === 'push') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full h-14 lg:h-18 px-4 lg:px-8 bg-slate-50 border-2 border-slate-100 rounded-2xl lg:rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all text-sm lg:text-base ${(user?.role !== 'admin' && transferType === 'push') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         value={newTransfer.from_site_id}
                                         onChange={(e) => setNewTransfer({ ...newTransfer, from_site_id: e.target.value })}
                                     >
@@ -397,17 +399,17 @@ const Transferts = () => {
                                             <option value={user?.site_id}>{sites.find(s => s.id == user?.site_id)?.name || 'Mon Site'}</option>
                                         ) : (
                                             <>
-                                                <option value="">Sélectionner le site source...</option>
+                                                <option value="">Sélectionner...</option>
                                                 {sites.filter(s => (user?.role === 'admin' || s.id !== user?.site_id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </>
                                         )}
                                     </select>
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Destination (Récepteur)</label>
+                                <div className="space-y-2 lg:space-y-4">
+                                    <label className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 lg:ml-4">Destination</label>
                                     <select required 
                                         disabled={user?.role !== 'admin' && transferType === 'pull'}
-                                        className={`w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all ${(user?.role !== 'admin' && transferType === 'pull') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`w-full h-14 lg:h-18 px-4 lg:px-8 bg-slate-50 border-2 border-slate-100 rounded-2xl lg:rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all text-sm lg:text-base ${(user?.role !== 'admin' && transferType === 'pull') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         value={newTransfer.to_site_id}
                                         onChange={(e) => setNewTransfer({ ...newTransfer, to_site_id: e.target.value })}
                                     >
@@ -415,7 +417,7 @@ const Transferts = () => {
                                             <option value={user?.site_id}>{sites.find(s => s.id == user?.site_id)?.name || 'Mon Site'}</option>
                                         ) : (
                                             <>
-                                                <option value="">Sélectionner destination...</option>
+                                                <option value="">Sélectionner...</option>
                                                 {sites.filter(s => (user?.role === 'admin' || s.id !== user?.site_id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </>
                                         )}
@@ -423,26 +425,26 @@ const Transferts = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Sélectionner Produit (Stock Source)</label>
-                                <div className="flex gap-4">
+                            <div className="space-y-2 lg:space-y-4">
+                                <label className="text-[9px] lg:text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 lg:ml-4">Configuration Produit</label>
+                                <div className="flex flex-col sm:flex-row gap-4">
                                     <div className="relative flex-1">
-                                        <Package className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 font-black" />
+                                        <Package className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 font-black hidden lg:block" />
                                         <select required 
-                                            className="w-full h-18 pl-16 pr-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all"
+                                            className="w-full h-14 lg:h-18 lg:pl-16 px-4 bg-slate-50 border-2 border-slate-100 rounded-2xl lg:rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all text-sm lg:text-base"
                                             value={newTransfer.product_id}
                                             onChange={(e) => setNewTransfer({ ...newTransfer, product_id: e.target.value })}
                                         >
                                             <option value="">Sélectionner un produit...</option>
                                             {sourceStock.map(p => (
                                                 <option key={p.id} value={p.id}>
-                                                    [{p.type}] {p.part_number} (Stock: {p.pivot.quantity})
+                                                    [{p.type}] {p.part_number} (Dispo: {p.pivot.quantity})
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="w-32">
-                                        <input required type="number" min="1" className="w-full h-18 px-6 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-[#1a2b4b] text-xl transition-all"
+                                    <div className="sm:w-32">
+                                        <input required type="number" min="1" className="w-full h-14 lg:h-18 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl lg:rounded-3xl font-black text-[#1a2b4b] text-xl transition-all"
                                             value={newTransfer.quantity}
                                             placeholder="Qté"
                                             onChange={(e) => setNewTransfer({ ...newTransfer, quantity: parseInt(e.target.value) })}
@@ -451,10 +453,10 @@ const Transferts = () => {
                                 </div>
                             </div>
 
-                            <div className="pt-10 flex gap-6">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-20 bg-slate-100 text-slate-400 rounded-3xl font-black uppercase tracking-widest text-[10px]">Abandonner</button>
-                                <button type="submit" className="flex-2 h-20 bg-[#1a2b4b] text-white rounded-3xl font-black shadow-2xl shadow-blue-900/40 uppercase tracking-widest text-[10px] flex items-center justify-center gap-6">
-                                    Confirmer <ArrowRight size={24} />
+                            <div className="pt-6 lg:pt-10 flex flex-col sm:flex-row gap-4 lg:gap-6">
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-16 lg:h-20 bg-slate-100 text-slate-400 rounded-2xl lg:rounded-3xl font-black uppercase tracking-widest text-[9px] lg:text-[10px]">Abandonner</button>
+                                <button type="submit" className="flex-2 h-16 lg:h-20 bg-[#1a2b4b] text-white rounded-2xl lg:rounded-3xl font-black shadow-2xl shadow-blue-900/40 uppercase tracking-widest text-[9px] lg:text-[10px] flex items-center justify-center gap-4 lg:gap-6">
+                                    Confirmer le Transfert <ArrowRight size={24} />
                                 </button>
                             </div>
                         </form>

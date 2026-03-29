@@ -27,8 +27,26 @@ const Layout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showAbout, setShowAbout] = useState(false);
     const { user, logout } = useAuth();
+
+    // Auto-close sidebar on window resize for mobile
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth >= 1024) {
+                setMobileMenuOpen(false);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Auto-close mobile menu on route change
+    useEffect(() => {
+        setMobileMenuOpen(false);
+        setShowAbout(false);
+    }, [location.pathname]);
 
     const baseMenuItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -84,13 +102,36 @@ const Layout = ({ children }) => {
     const fullName = user ? `${user.nom} ${user.prenom}` : 'Utilisateur';
 
     return (
-        <div className="flex h-screen bg-[#f4f7f9] overflow-hidden">
+        <div className="flex h-screen bg-[#f4f7f9] overflow-hidden font-['Work_Sans']">
+            {/* Backdrop for mobile */}
+            {mobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-300"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-[#075E80] text-white transition-all duration-300 flex flex-col z-40`}>
+            <div className={`
+                ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                ${sidebarOpen ? 'lg:w-64' : 'lg:w-20'} 
+                fixed lg:relative h-full bg-[#075E80] text-white transition-all duration-300 flex flex-col z-[60] shadow-2xl lg:shadow-none
+            `}>
                 <div className="p-6 flex flex-col gap-4">
                     <div className="flex items-center justify-between">
-                        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                        {/* Desktop toggle */}
+                        <button 
+                            onClick={() => setSidebarOpen(!sidebarOpen)} 
+                            className="hidden lg:flex p-2 hover:bg-white/10 rounded-xl transition-all"
+                        >
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
+                        {/* Mobile close */}
+                        <button 
+                            onClick={() => setMobileMenuOpen(false)} 
+                            className="lg:hidden p-2 hover:bg-white/10 rounded-xl transition-all ml-auto"
+                        >
+                            <X size={24} />
                         </button>
                     </div>
                 </div>
@@ -159,22 +200,32 @@ const Layout = ({ children }) => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-30">
-                    <div className="flex items-center gap-8">
-                        <img src="/leoni_logo.png" alt="LEONI" className="h-6 w-auto" />
-                        <div className="h-6 w-px bg-slate-200"></div>
-                        <img src="/opex_logo.png" alt="OPEX" className="h-6 w-auto" />
+            <div className="flex-1 flex flex-col overflow-hidden w-full">
+                <header className="h-16 lg:h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 shadow-sm">
+                    <div className="flex items-center gap-4 lg:gap-8">
+                        {/* Mobile Burger - Hidden on large screens */}
+                        <button 
+                            onClick={() => setMobileMenuOpen(true)}
+                            className="lg:hidden p-2 text-slate-500 hover:bg-slate-50 rounded-xl transition-all"
+                        >
+                            <Menu size={24} />
+                        </button>
+
+                        <div className="flex items-center gap-3 lg:gap-8">
+                            <img src="/leoni_logo.png" alt="LEONI" className="h-5 lg:h-7 w-auto object-contain" />
+                            <div className="h-5 lg:h-6 w-px bg-slate-200 hidden sm:block"></div>
+                            <img src="/opex_logo.png" alt="OPEX" className="h-5 lg:h-7 w-auto object-contain hidden sm:block" />
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
-                            <div className="w-10 h-10 rounded-full bg-[#075E80] text-white flex items-center justify-center font-bold text-sm">
+                    <div className="flex items-center gap-3 lg:gap-6">
+                        <div className="flex items-center gap-2 lg:gap-3 pl-3 lg:pl-6 border-l border-slate-100">
+                            <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-[#075E80] text-white flex items-center justify-center font-bold text-xs lg:text-sm shadow-inner">
                                 {userInitials}
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-xs font-black text-[#075E80] leading-none uppercase tracking-wider">{fullName}</span>
-                                <span className="text-[10px] text-emerald-500 font-bold mt-1">Connecté</span>
+                                <span className="text-[10px] lg:text-xs font-black text-[#075E80] leading-none uppercase tracking-wider truncate max-w-[80px] lg:max-w-none">{fullName}</span>
+                                <span className="text-[8px] lg:text-[10px] text-emerald-500 font-bold mt-1.5 hidden xs:block">Connecté</span>
                             </div>
                         </div>
                     </div>

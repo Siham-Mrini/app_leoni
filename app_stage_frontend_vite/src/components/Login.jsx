@@ -37,7 +37,7 @@ const Login = () => {
                 {/* Header Logos */}
                 <div className="flex items-center justify-between mb-16">
                     <img src="/opex_logo.png" alt="OPEX" className="h-8 w-auto" />
-                    <span className="text-3xl font-black text-[#075E80] tracking-tighter uppercase italic">LEONI</span>
+                    <img src="/leoni_logo.png" alt="LEONI" className="h-8 w-auto" />
                 </div>
 
                 <div className="text-center mb-12">

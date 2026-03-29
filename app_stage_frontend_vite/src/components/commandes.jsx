@@ -237,133 +237,124 @@ const Commandes = () => {
                         <div key={i} className="bg-white h-32 rounded-[2rem] border border-slate-50 animate-pulse"></div>
                     ))
                 ) : (
-                    <>
-                        {orders
-                            .filter(order =>
-                                (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                                (order.product?.part_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                                (order.site?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                                (order.supplier?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-                            )
-                            .map((order) => {
-                                const theme = getStatusTheme(order.status);
-                                return (
-                                    <div key={order.id} className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all group flex flex-col lg:flex-row lg:items-center gap-8 relative overflow-hidden">
-                                        <div className={`absolute top-0 left-0 w-2 h-full ${theme.text.replace('text', 'bg')}`}></div>
+                    orders
+                        .filter(order =>
+                            (order.order_number?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                            (order.items?.some(item => item.product?.part_number?.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+                            (order.site?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                            (order.supplier?.name?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+                        )
+                        .map((order) => {
+                            const theme = getStatusTheme(order.status);
+                            return (
+                                <div key={order.id} className="bg-white rounded-3xl lg:rounded-[2.5rem] p-5 lg:p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-blue-900/5 transition-all group flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-8 relative overflow-hidden">
+                                    <div className={`absolute top-0 left-0 w-2 h-full ${theme.text.replace('text', 'bg')}`}></div>
 
-                                        <div className="flex items-center gap-6 lg:w-1/3">
-                                            <div className={`w-16 h-16 rounded-3xl flex items-center justify-center ${theme.bg} ${theme.text} border ${theme.border} rotate-3 group-hover:rotate-0 transition-transform shadow-sm`}>
-                                                {theme.icon}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <span className="text-[10px] font-black text-[#075E80] uppercase tracking-[0.2em] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{order.order_number || `ORD-${order.id.toString().padStart(4, '0')}`}</span>
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${theme.text} px-2 py-0.5 rounded-full border ${theme.border}`}>
-                                                        {theme.label}
-                                                    </span>
-                                                </div>
-                                                <h4 className="text-xl font-black text-slate-900 group-hover:text-[#075E80] transition-colors">
-                                                    {order.items?.length > 0 ? `${order.items.length} Produit(s)` : order.product?.part_number}
-                                                </h4>
-                                                <div className="flex items-center gap-4 mt-1">
-                                                    <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                                                        <Calendar size={10} className="text-[#075E80]" />
-                                                        {order.order_date || new Date(order.created_at).toLocaleDateString()}
-                                                    </div>
-                                                </div>
-                                                {order.items?.length > 0 && (
-                                                    <div className="mt-3 flex flex-wrap gap-2 text-[8px] font-bold text-slate-400 uppercase">
-                                                        {order.items.map(item => (
-                                                            <span key={item.id} className="bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
-                                                                {item.product?.part_number} (x{item.quantity})
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
+                                    <div className="flex items-center gap-4 lg:gap-6 lg:w-1/3">
+                                        <div className={`w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl flex items-center justify-center shrink-0 ${theme.bg} ${theme.text} border ${theme.border} rotate-3 group-hover:rotate-0 transition-transform shadow-sm`}>
+                                            {theme.icon}
                                         </div>
-
-                                        <div className="flex-1 grid grid-cols-2 gap-8 border-l border-slate-50 pl-8">
-                                            <div className="space-y-1">
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                                                    <User size={10} /> Fournisseur
-                                                </p>
-                                                <p className="font-black text-slate-700 text-sm truncate">{order.supplier?.name}</p>
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                                <span className="text-[9px] lg:text-[10px] font-black text-[#075E80] uppercase tracking-[0.2em] bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-100">{order.order_number || `ORD-${order.id.toString().padStart(4, '0')}`}</span>
+                                                <span className={`text-[8px] lg:text-[9px] font-black uppercase tracking-widest ${theme.text} px-2 py-0.5 rounded-full border ${theme.border}`}>
+                                                    {theme.label}
+                                                </span>
                                             </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
-                                                    <Building size={10} /> Destination
-                                                </p>
-                                                <p className="font-black text-slate-700 text-sm truncate">{order.site?.name}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="lg:w-1/4 flex flex-col gap-4 border-l border-slate-50 pl-8">
-                                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                                                <Activity size={10} /> Suivi du Flux
-                                            </p>
-                                            <div className="flex items-center justify-between relative px-2">
-                                                <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2"></div>
-                                                <div className="absolute top-1/2 left-0 h-0.5 bg-[#075E80] -translate-y-1/2 transition-all duration-1000" style={{
-                                                    width: order.status === 'en attente' ? '0%' : order.status === 'en livraison' ? '50%' : '100%',
-                                                    opacity: order.status === 'refusée' ? 0.3 : 1
-                                                }}></div>
-
-                                                {[
-                                                    { id: 'en attente', label: 'E', icon: <Clock size={10} /> },
-                                                    { id: 'en livraison', label: 'L', icon: <Truck size={10} /> },
-                                                    { id: 'reçue', label: 'R', icon: <CheckCircle2 size={10} /> }
-                                                ].map((step, idx) => {
-                                                    const isDone = (order.status === 'reçue') || (order.status === 'en livraison' && idx <= 1) || (order.status === 'en attente' && idx === 0);
-                                                    const isCurrent = order.status === step.id;
-                                                    return (
-                                                        <div key={step.id} className="relative z-10 flex flex-col items-center gap-2" title={step.label}>
-                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${isDone ? 'bg-[#075E80] border-[#075E80] text-white' : 'bg-white border-slate-100 text-slate-300'}`}>
-                                                                {step.icon}
-                                                            </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                            {order.status === 'refusée' && (
-                                                <div className="mt-2 bg-rose-50 border border-rose-100 px-4 py-2 rounded-xl flex items-center gap-2">
-                                                    <XCircle size={10} className="text-rose-600" />
-                                                    <span className="text-[8px] font-black uppercase text-rose-600 tracking-widest">Refusée</span>
+                                            <h4 className="text-lg lg:text-xl font-black text-slate-900 group-hover:text-[#075E80] transition-colors truncate">
+                                                {order.items?.length > 0 ? `${order.items.length} Produit(s)` : 'Commande'}
+                                            </h4>
+                                            <div className="flex items-center gap-3 mt-1">
+                                                <div className="flex items-center gap-1.5 text-[8px] lg:text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
+                                                    <Calendar size={10} className="text-[#075E80]" />
+                                                    {order.order_date || new Date(order.created_at).toLocaleDateString()}
                                                 </div>
-                                            )}
-                                        </div>
-
-                                        <div className="lg:w-1/6 flex justify-end items-center gap-3">
-                                            {(user?.role === 'admin' || user?.role === 'fournisseur' || user?.role === 'employe') && order.status === 'en attente' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleValidateOrder(order.id)}
-                                                        className="h-12 px-4 bg-[#075E80] text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg active:scale-95"
-                                                    >
-                                                        Valider
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleRefuseOrder(order.id)}
-                                                        className="h-12 px-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
-                                                    >
-                                                        Refuser
-                                                    </button>
-                                                </>
-                                            )}
-
-                                            {(user?.role === 'admin' || user?.role === 'employe' || user?.role === 'fournisseur') && order.status === 'en livraison' && (
-                                                <button
-                                                    onClick={() => handleReceiveOrder(order.id)}
-                                                    className="w-full h-12 bg-emerald-600 text-white rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
-                                                >
-                                                    Recu
-                                                </button>
+                                            </div>
+                                            {order.items?.length > 0 && (
+                                                <div className="mt-3 flex flex-wrap gap-2 text-[8px] font-bold text-slate-400 uppercase">
+                                                    {order.items.map(item => (
+                                                        <span key={item.id} className="bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
+                                                            {item.part_number} (x{item.quantity})
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
-                                );
-                            })}
-                    </>
+
+                                    <div className="flex-1 grid grid-cols-2 gap-4 lg:gap-8 lg:border-l border-slate-50 lg:pl-8">
+                                        <div className="space-y-1">
+                                            <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                                                <User size={10} /> Fournisseur
+                                            </p>
+                                            <p className="font-black text-slate-700 text-xs lg:text-sm truncate">{order.supplier?.name}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                                                <Building size={10} /> Destination
+                                            </p>
+                                            <p className="font-black text-slate-700 text-xs lg:text-sm truncate">{order.site?.name}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:w-1/4 flex flex-col gap-3 lg:gap-4 lg:border-l border-slate-50 lg:pl-8">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                                            <Activity size={10} /> Suivi du Flux
+                                        </p>
+                                        <div className="flex items-center justify-between relative px-2">
+                                            <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-slate-100 -translate-y-1/2"></div>
+                                            <div className="absolute top-1/2 left-0 h-0.5 bg-[#075E80] -translate-y-1/2 transition-all duration-1000" style={{
+                                                width: order.status === 'en attente' ? '0%' : order.status === 'en livraison' ? '50%' : '100%',
+                                                opacity: order.status === 'refusée' ? 0.3 : 1
+                                            }}></div>
+
+                                            {[
+                                                { id: 'en attente', label: 'E', icon: <Clock size={10} /> },
+                                                { id: 'en livraison', label: 'L', icon: <Truck size={10} /> },
+                                                { id: 'reçue', label: 'R', icon: <CheckCircle2 size={10} /> }
+                                            ].map((step, idx) => {
+                                                const isDone = (order.status === 'reçue') || (order.status === 'en livraison' && idx <= 1) || (order.status === 'en attente' && idx === 0);
+                                                return (
+                                                    <div key={step.id} className="relative z-10 flex flex-col items-center gap-2" title={step.label}>
+                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${isDone ? 'bg-[#075E80] border-[#075E80] text-white' : 'bg-white border-slate-100 text-slate-300'}`}>
+                                                            {step.icon}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:w-1/6 flex justify-end items-center gap-3">
+                                        {(user?.role === 'admin' || user?.role === 'fournisseur' || user?.role === 'employe') && order.status === 'en attente' && (
+                                            <div className="flex flex-row lg:flex-col xl:flex-row gap-2 w-full lg:w-auto">
+                                                <button
+                                                    onClick={() => handleValidateOrder(order.id)}
+                                                    className="flex-1 lg:flex-none h-10 lg:h-12 px-3 lg:px-4 bg-[#075E80] text-white rounded-xl font-black text-[8px] lg:text-[9px] uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg active:scale-95"
+                                                >
+                                                    Valider
+                                                </button>
+                                                <button
+                                                    onClick={() => handleRefuseOrder(order.id)}
+                                                    className="flex-1 lg:flex-none h-10 lg:h-12 px-3 lg:px-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl font-black text-[8px] lg:text-[9px] uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
+                                                >
+                                                    Refuser
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {(user?.role === 'admin' || user?.role === 'employe' || user?.role === 'fournisseur') && order.status === 'en livraison' && (
+                                            <button
+                                                onClick={() => handleReceiveOrder(order.id)}
+                                                className="w-full h-10 lg:h-12 bg-emerald-600 text-white rounded-xl lg:rounded-2xl font-black text-[8px] lg:text-[9px] uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"
+                                            >
+                                                Recu
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
                 )}
                 {orders.length === 0 && !loading && (
                     <div className="py-40 text-center bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100">
@@ -377,23 +368,25 @@ const Commandes = () => {
 
             {/* Create Order Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-4 animate-in fade-in duration-300">
-                    <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-12 border-b border-slate-50 flex justify-between items-center bg-blue-50/30">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 bg-[#075E80] text-white rounded-2xl flex items-center justify-center shadow-xl shadow-blue-900/20">
-                                    <ShoppingCart size={28} />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-md p-3 lg:p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2rem] lg:rounded-[3rem] shadow-2xl w-full max-w-2xl max-h-[95vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 lg:p-12 border-b border-slate-50 flex justify-between items-center bg-blue-50/30 shrink-0">
+                            <div className="flex items-center gap-4 lg:gap-6">
+                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-[#075E80] text-white rounded-2xl flex items-center justify-center shadow-xl shadow-blue-900/20">
+                                    <ShoppingCart size={24} className="lg:hidden" />
+                                    <ShoppingCart size={28} className="hidden lg:block" />
                                 </div>
                                 <div>
-                                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">Nouvel Commande</h3>
+                                    <h3 className="text-xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">Nouvelle Commande</h3>
                                 </div>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="w-14 h-14 flex items-center justify-center text-slate-300 hover:text-[#075E80] hover:bg-white rounded-full transition-all">
-                                <XCircle size={32} />
+                            <button onClick={() => setShowModal(false)} className="w-10 h-10 lg:w-14 lg:h-14 flex items-center justify-center text-slate-300 hover:text-[#075E80] hover:bg-white rounded-full transition-all">
+                                <XCircle size={28} className="lg:hidden" />
+                                <XCircle size={32} className="hidden lg:block" />
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateOrder} className="p-12 space-y-10 overflow-y-auto max-h-[60vh]">
+                        <form onSubmit={handleCreateOrder} className="p-6 lg:p-12 space-y-8 lg:space-y-10 overflow-y-auto">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Partenaire Fournisseur</label>
@@ -470,7 +463,7 @@ const Commandes = () => {
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Part Number</label>
                                         <input 
                                             type="text"
-                                            className="w-full h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all"
+                                            className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
                                             placeholder="Saisir un part number..."
                                             value={currentItem.part_number}
                                             onChange={(e) => setCurrentItem({...currentItem, part_number: e.target.value})}
@@ -488,7 +481,7 @@ const Commandes = () => {
                                             <input 
                                                 type="number" 
                                                 min="1"
-                                                className="w-full h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all"
+                                                className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
                                                 value={currentItem.quantity}
                                                 onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
                                                 onKeyDown={(e) => {
@@ -501,7 +494,7 @@ const Commandes = () => {
                                             <button 
                                                 type="button" 
                                                 onClick={addItem}
-                                                className="h-14 px-4 bg-[#075E80] text-white rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center shrink-0"
+                                                className="h-12 lg:h-14 px-4 bg-[#075E80] text-white rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center shrink-0"
                                             >
                                                 <Plus size={20} />
                                             </button>
@@ -537,10 +530,10 @@ const Commandes = () => {
                                 )}
                             </div>
 
-                            <div className="pt-6 flex gap-6">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-20 bg-slate-50 text-slate-400 rounded-3xl font-black hover:bg-slate-100 hover:text-slate-600 transition-all uppercase tracking-widest text-[10px]">Annuler</button>
-                                <button type="submit" className="flex-1 h-20 bg-[#075E80] text-white rounded-3xl font-black hover:bg-slate-900 transition-all shadow-2xl shadow-blue-900/20 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95">
-                                    Confirmer l'Ordre Multi-Produits <ArrowRight size={18} />
+                            <div className="pt-6 flex flex-col sm:flex-row gap-4 lg:gap-6 shrink-0">
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 lg:h-20 bg-slate-50 text-slate-400 rounded-2xl lg:rounded-3xl font-black hover:bg-slate-100 hover:text-slate-600 transition-all uppercase tracking-widest text-[10px]">Annuler</button>
+                                <button type="submit" className="flex-1 h-14 lg:h-20 bg-[#075E80] text-white rounded-2xl lg:rounded-3xl font-black hover:bg-slate-900 transition-all shadow-2xl shadow-blue-900/20 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95">
+                                    Confirmer l'Ordre <ArrowRight size={18} />
                                 </button>
                             </div>
                         </form>
