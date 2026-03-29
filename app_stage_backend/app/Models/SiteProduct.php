@@ -11,7 +11,7 @@ class SiteProduct extends Pivot
 
     protected $table = 'site_product';
 
-    protected $fillable = ['site_id', 'product_id', 'quantity', 'installed_quantity'];
+    protected $fillable = ['site_id', 'product_id', 'quantity', 'installed_quantity', 'pending_quantity'];
 
     public function site()
     {

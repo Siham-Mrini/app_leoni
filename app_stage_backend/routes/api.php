@@ -11,21 +11,7 @@ use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActionHistoryController;
-
-Route::get('/test-db', function() {
-    try {
-        \Illuminate\Support\Facades\DB::connection()->getPdo();
-        $admin = \App\Models\User::where('email', 'admin@leoni.com')->first();
-        return response()->json([
-            'database' => 'connected',
-            'admin_exists' => $admin ? 'yes' : 'no',
-            'user_count' => \App\Models\User::count(),
-            'app_key_set' => !empty(config('app.key')),
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
+use App\Http\Controllers\EmplacementController;
 
 Route::post('login', [AuthController::class , 'login']);
 
@@ -43,11 +29,20 @@ Route::middleware('auth:sanctum')->group(function () {
         }
         );
 
-        // Internal Roles (Employé & Admin)
-        Route::middleware('role:admin,employe')->group(function () {
+        // Read-only access for all authenticated roles (Admin needs sites/suppliers for user creation)
+        Route::middleware('role:admin,manager,employe')->group(function () {
+            Route::get('sites', [SiteController::class , 'index']);
+            Route::get('sites/{site}', [SiteController::class , 'show']);
+            Route::get('suppliers', [SupplierController::class , 'index']);
+            Route::get('suppliers/{supplier}', [SupplierController::class , 'show']);
+        });
+
+        // Logistics Management (Manager & Employé Only)
+        Route::middleware('role:manager,employe')->group(function () {
             Route::apiResource('sites', SiteController::class)->except(['index', 'show']);
             Route::get('histories', [ActionHistoryController::class , 'index']);
             Route::apiResource('suppliers', SupplierController::class)->except(['index', 'show']);
+            
             Route::middleware('site')->group(function () {
                     Route::apiResource('products', ProductController::class);
                     Route::apiResource('transfers', TransferController::class);
@@ -57,20 +52,15 @@ Route::middleware('auth:sanctum')->group(function () {
                     Route::post('transfers/{transfer}/cancel', [TransferController::class , 'cancel']);
                     Route::post('installations', [InstallationController::class , 'install']);
                     Route::get('installations/stats', [InstallationController::class , 'stats']);
+                    Route::apiResource('emplacements', EmplacementController::class);
                 }
-                );
+            );
 
-                // Orders management
-                Route::apiResource('orders', OrderController::class)->only(['index', 'show', 'store', 'destroy']);
-                Route::post('orders/{order}/receive', [OrderController::class , 'receive']);
-                Route::post('orders/{order}/validate', [OrderController::class , 'validateOrder']);
-                Route::post('orders/{order}/refuse', [OrderController::class , 'refuseOrder']);
-                Route::post('orders/{order}/deliver', [OrderController::class , 'deliverOrder']);
-
-                // Data access
-                Route::get('sites', [SiteController::class , 'index']);
-                Route::get('sites/{site}', [SiteController::class , 'show']);
-                Route::get('suppliers', [SupplierController::class , 'index']);
-                Route::get('suppliers/{supplier}', [SupplierController::class , 'show']);
+            // Orders management
+            Route::apiResource('orders', OrderController::class)->only(['index', 'show', 'store', 'destroy']);
+            Route::post('orders/{order}/receive', [OrderController::class , 'receive']);
+            Route::post('orders/{order}/validate', [OrderController::class , 'validateOrder']);
+            Route::post('orders/{order}/refuse', [OrderController::class , 'refuseOrder']);
+            Route::post('orders/{order}/deliver', [OrderController::class , 'deliverOrder']);
         });
 });

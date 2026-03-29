@@ -9,26 +9,31 @@ import {
     ArrowLeftRight,
     Wrench,
     History,
-    LogOut,
     Menu,
     X,
-    Shield
+    Shield,
+    Warehouse,
+    Info,
+    Mail,
+    Phone,
+    Code2
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import ProfessionalSignature from '../components/ProfessionalSignature';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 const Layout = ({ children }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [showAbout, setShowAbout] = useState(false);
     const { user, logout } = useAuth();
 
     const baseMenuItems = [
         { name: 'Dashboard', path: '/', icon: LayoutDashboard },
         { name: 'Produits', path: '/produits', icon: Package },
+        { name: 'Emplacements', path: '/emplacements', icon: Warehouse },
         { name: 'Sites', path: '/sites', icon: MapPin },
         { name: 'Fournisseurs', path: '/fournisseurs', icon: Users },
         { name: 'Commandes', path: '/commandes', icon: ShoppingCart },
@@ -42,10 +47,22 @@ const Layout = ({ children }) => {
     const menuItems = baseMenuItems.filter(item => {
         if (!user) return false;
         const userRole = user.role?.toLowerCase();
-        if (userRole === 'admin') return true;
-        if (userRole === 'employe' || userRole === 'employé') {
-            return !['Utilisateurs'].includes(item.name);
+        
+        // Admin (IT): Only Dashboard, Utilisateurs, Profile
+        if (userRole === 'admin') {
+            return ['Dashboard', 'Utilisateurs', 'Profile'].includes(item.name);
         }
+        
+        // Manager: Everything EXCEPT Utilisateurs
+        if (userRole === 'manager') {
+            return item.name !== 'Utilisateurs';
+        }
+
+        // Employe: Everything EXCEPT Utilisateurs (could be restricted further if needed)
+        if (userRole === 'employe' || userRole === 'employé') {
+            return item.name !== 'Utilisateurs';
+        }
+
         return false;
     });
 
@@ -94,6 +111,51 @@ const Layout = ({ children }) => {
                     ))}
                 </nav>
 
+                {/* About / Contact button at the bottom of sidebar */}
+                <div className="p-3 mt-auto relative">
+                    <button
+                        onClick={() => setShowAbout(prev => !prev)}
+                        className={`w-full flex items-center p-3 rounded-xl transition-all group ${
+                            showAbout
+                                ? 'bg-white text-[#075E80] font-bold'
+                                : 'text-white/50 hover:bg-white/10 hover:text-white'
+                        }`}
+                        title="À propos"
+                    >
+                        <Info className={`${sidebarOpen ? 'mr-3' : 'mx-auto'} w-5 h-5`} />
+                        {sidebarOpen && <span className="text-sm">À propos</span>}
+                    </button>
+
+                    {/* Popup */}
+                    {showAbout && (
+                        <div className={`absolute bottom-14 ${
+                            sidebarOpen ? 'left-3 right-3' : 'left-20'
+                        } bg-white rounded-2xl shadow-2xl shadow-black/20 p-5 z-50 border border-slate-100 animate-in slide-in-from-bottom-4 duration-200 min-w-[220px]`}>
+                            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+                                <div className="w-9 h-9 rounded-xl bg-[#075E80] flex items-center justify-center shadow">
+                                    <Code2 size={16} className="text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-black text-slate-800 uppercase tracking-wider">Siham <span className="text-[#075E80]">Mrini</span></p>
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Développeur · LEONI</p>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <a href="mailto:sihammerini1@gmail.com" className="flex items-center gap-2 text-slate-500 hover:text-[#075E80] transition-colors">
+                                    <Mail size={12} />
+                                    <span className="text-[10px] font-bold">sihammerini1@gmail.com</span>
+                                </a>
+                                <a href="tel:+212785974826" className="flex items-center gap-2 text-slate-500 hover:text-[#075E80] transition-colors">
+                                    <Phone size={12} />
+                                    <span className="text-[10px] font-bold">+212 785-974826</span>
+                                </a>
+                            </div>
+                            <div className="mt-3 pt-3 border-t border-slate-50">
+                                <span className="text-[8px] text-slate-300 font-black uppercase tracking-widest">LEONI OPEX v1.0 © {new Date().getFullYear()}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Main Content */}
@@ -119,18 +181,12 @@ const Layout = ({ children }) => {
                 </header>
 
                 <main className="flex-1 overflow-y-auto px-8 py-8 custom-scrollbar relative">
-                    <div className="pb-16">
+                    <div className="pb-8">
                         <ErrorBoundary>
                             {children}
                         </ErrorBoundary>
                     </div>
                 </main>
-
-                <footer className="h-14 bg-white/70 backdrop-blur-md border-t border-slate-100 flex items-center px-8 z-30">
-                    <div className="w-full">
-                        <ProfessionalSignature />
-                    </div>
-                </footer>
             </div>
         </div>
     );

@@ -35,11 +35,10 @@ class TransferController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        // Permissions: Employee can only create transfers TO their site (Pull request)
+        // Permissions: Employee can create PULL (from another site to theirs) or PUSH (from theirs to another site)
         if ($user->role === 'employe') {
-            $validated['to_site_id'] = $user->site_id;
-            if ($validated['from_site_id'] == $user->site_id) {
-                return response()->json(['message' => 'Le site source doit être différent de votre site.'], 422);
+            if ($validated['from_site_id'] != $user->site_id && $validated['to_site_id'] != $user->site_id) {
+                return response()->json(['message' => 'Vous devez être soit le site source, soit le site de destination.'], 403);
             }
         }
 
@@ -67,8 +66,8 @@ class TransferController extends Controller
     {
         $user = $request->user();
 
-        // Auth: Source Site, Employe, or Admin
-        if ($user->role !== 'admin' && $user->role !== 'employe' && $user->site_id !== $transfer->from_site_id) {
+        // Auth: Site source uniquement (+ admin/manager)
+        if ($user->role !== 'admin' && $user->role !== 'manager' && (int)$user->site_id !== (int)$transfer->from_site_id) {
             return response()->json(['message' => 'Non autorisé. Seul le site source peut valider le transfert.'], 403);
         }
 
@@ -126,9 +125,11 @@ class TransferController extends Controller
     {
         $user = $request->user();
 
-        // Auth: Destination Site, Employe, or Admin
-        if ($user->role !== 'admin' && $user->role !== 'employe' && $user->site_id !== $transfer->to_site_id) {
-            return response()->json(['message' => 'Non autorisé. Seul le site de destination peut valider la réception.'], 403);
+        // Auth: Site source OU destination peuvent confirmer la réception (+ admin/manager)
+        $isSource = (int)$user->site_id === (int)$transfer->from_site_id;
+        $isDest   = (int)$user->site_id === (int)$transfer->to_site_id;
+        if ($user->role !== 'admin' && $user->role !== 'manager' && !$isSource && !$isDest) {
+            return response()->json(['message' => 'Non autorisé. Seul le site source ou destination peut confirmer la réception.'], 403);
         }
 
         if ($transfer->status !== 'en cours') {
@@ -147,8 +148,15 @@ class TransferController extends Controller
                 'product_id' => $transfer->product_id,
             ]);
 
+            // Initialize fields to 0 for new records
+            if (!$destStock->exists) {
+                $destStock->quantity = 0;
+                $destStock->pending_quantity = 0;
+                $destStock->installed_quantity = 0;
+            }
+
             $destStock->pending_quantity = max(0, ($destStock->pending_quantity ?? 0) - $transfer->quantity);
-            $destStock->quantity += $transfer->quantity;
+            $destStock->quantity = ($destStock->quantity ?? 0) + $transfer->quantity;
             $destStock->save();
 
             ActionHistory::create([
@@ -174,13 +182,17 @@ class TransferController extends Controller
         // Source can refuse a 'demande'
         // Destination can refuse an 'en cours' (reception)
         if ($transfer->status === 'demande') {
-            if ($user->role !== 'admin' && $user->role !== 'employe' && $user->site_id !== $transfer->from_site_id) {
+            // Seul le site source peut refuser une demande
+            if ($user->role !== 'admin' && $user->role !== 'manager' && (int)$user->site_id !== (int)$transfer->from_site_id) {
                 return response()->json(['message' => 'Non autorisé. Seul le site source peut refuser la demande.'], 403);
             }
         }
         elseif ($transfer->status === 'en cours') {
-            if ($user->role !== 'admin' && $user->role !== 'employe' && $user->site_id !== $transfer->to_site_id) {
-                return response()->json(['message' => 'Non autorisé. Seul le site de destination peut refuser la réception.'], 403);
+            // Source OU destination peuvent refuser la réception
+            $isSource = (int)$user->site_id === (int)$transfer->from_site_id;
+            $isDest   = (int)$user->site_id === (int)$transfer->to_site_id;
+            if ($user->role !== 'admin' && $user->role !== 'manager' && !$isSource && !$isDest) {
+                return response()->json(['message' => 'Non autorisé.'], 403);
             }
         }
         else {
@@ -242,8 +254,9 @@ class TransferController extends Controller
         // No stock changes yet, just cancel
         }
         elseif ($transfer->status === 'en cours') {
-            if ($user->role !== 'admin' && $user->role !== 'employe' && $user->site_id !== $transfer->from_site_id) {
-                return response()->json(['message' => 'Non autorisé. Seul le site d\'origine peut annuler le transfert en cours.'], 403);
+            // Seul le site source peut annuler une expédition en cours
+            if ($user->role !== 'admin' && $user->role !== 'manager' && (int)$user->site_id !== (int)$transfer->from_site_id) {
+                return response()->json(['message' => 'Non autorisé. Seul le site source peut annuler le transfert en cours.'], 403);
             }
         }
         else {

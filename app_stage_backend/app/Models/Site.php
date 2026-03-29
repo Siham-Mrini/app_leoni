@@ -11,6 +11,11 @@ class Site extends Model
 
     protected $fillable = ['name', 'location'];
 
+    public function emplacements()
+    {
+        return $this->hasMany(Emplacement::class);
+    }
+
     public function products()
     {
         return $this->belongsToMany(Product::class, 'site_product')

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { Plus, Edit, Trash2, Search, Package, CheckCircle, XCircle, Wrench, Image as ImageIcon, IndianRupee, Euro, DollarSign, Tag, Activity, MapPin } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Package, CheckCircle, XCircle, Wrench, Image as ImageIcon, IndianRupee, Euro, DollarSign, Tag, Activity, MapPin, ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Produits = () => {
@@ -8,12 +8,13 @@ const Produits = () => {
     const [products, setProducts] = useState([]);
     const [sitesList, setSitesList] = useState([]);
     const [suppliersList, setSuppliersList] = useState([]);
+    const [emplacementsList, setEmplacementsList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showAll, setShowAll] = useState(false);
     const [selectedFilterSite, setSelectedFilterSite] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [currentProduct, setCurrentProduct] = useState({ part_number: '', sku: '', type: 'Tag', family: '', price: 0, image_url: '', initial_quantity: 0, site_id: '', supplier_id: '', boolean_value: 'non', is_installed: false });
+    const [currentProduct, setCurrentProduct] = useState({ part_number: '', sku: '', type: 'Tag', family: '', price: 0, image_url: '', initial_quantity: 0, site_id: '', supplier_id: '', emplacement_id: '', boolean_value: 'non', is_installed: false });
     const [isEditing, setIsEditing] = useState(false);
     const [showInstallModal, setShowInstallModal] = useState(false);
     const [installData, setInstallData] = useState({ product_id: '', site_id: '', quantity: 1, max: 0, product_name: '' });
@@ -25,14 +26,16 @@ const Produits = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const [prodRes, siteRes, suppRes] = await Promise.all([
+            const [prodRes, siteRes, suppRes, empRes] = await Promise.all([
                 api.get('/products'),
                 api.get('/sites'),
-                api.get('/suppliers')
+                api.get('/suppliers'),
+                api.get('/emplacements')
             ]);
             setProducts(prodRes.data);
             setSitesList(siteRes.data);
             setSuppliersList(suppRes.data);
+            setEmplacementsList(empRes.data);
             setLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -50,6 +53,7 @@ const Produits = () => {
                 ...product,
                 site_id: product.site_id || '',
                 supplier_id: product.supplier_id || '',
+                emplacement_id: product.emplacement_id || '',
                 boolean_value: product.boolean_value || 'non',
                 is_installed: product.is_installed || false
             });
@@ -64,6 +68,7 @@ const Produits = () => {
                 initial_quantity: 0,
                 site_id: (user?.site_id || (sitesList.length > 0 ? sitesList[0].id : '')),
                 supplier_id: '',
+                emplacement_id: '',
                 boolean_value: 'non',
                 is_installed: false
             });
@@ -110,6 +115,15 @@ const Produits = () => {
         }
     };
 
+
+    const handleQuickAssignEmplacement = async (productId, emplacementId) => {
+        try {
+            await api.put(`/products/${productId}`, { emplacement_id: emplacementId || null });
+            fetchData();
+        } catch (error) {
+            alert('Erreur lors de l\'assignation de l\'emplacement.');
+        }
+    };
 
     // For employees, show only their site's products; admins see all (or filtered by site)
     const filteredProducts = products.filter(p => {
@@ -212,6 +226,31 @@ const Produits = () => {
                                                     <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${product.sites && product.sites.some(s => s.pivot.quantity > 0) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
                                                         {product.sites && product.sites.some(s => s.pivot.quantity > 0) ? 'En Stock' : 'Rupture'}
                                                     </span>
+                                                    {product.sites?.some(s => s.pivot.quantity > 0) && !product.is_installed ? (
+                                                        <div className="relative inline-block">
+                                                            <select
+                                                                className="appearance-none pl-5 pr-6 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-[#075E80]/5 text-[#075E80] border border-[#075E80]/10 cursor-pointer focus:ring-2 focus:ring-[#075E80]/20 transition-all"
+                                                                value={product.emplacement_id || ''}
+                                                                onChange={(e) => handleQuickAssignEmplacement(product.id, e.target.value)}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <option value="">Aucun emplacement</option>
+                                                                {emplacementsList
+                                                                    .filter(emp => product.sites?.some(s => String(s.id) === String(emp.site_id)))
+                                                                    .map(emp => (
+                                                                        <option key={emp.id} value={emp.id}>
+                                                                            {emp.code} ({emp.site?.name})
+                                                                        </option>
+                                                                    ))
+                                                                }
+                                                            </select>
+                                                            <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none text-[#075E80]" size={9} />
+                                                        </div>
+                                                    ) : product.emplacement ? (
+                                                        <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-[#075E80]/5 text-[#075E80] border border-[#075E80]/10 flex items-center gap-1">
+                                                            <MapPin size={8} /> {product.emplacement.code}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                             </div>
                                         </div>
@@ -511,7 +550,54 @@ const Produits = () => {
                                             {dynamicFamilies.map(f => <option key={f} value={f} />)}
                                         </datalist>
                                     </div>
+                                </div>
+                            </div>
 
+                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-slate-50/50 rounded-3xl border border-slate-100">
+                                <div className="space-y-4">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Statut d'Installation</label>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrentProduct({...currentProduct, is_installed: false})}
+                                            className={`flex-1 h-14 rounded-xl font-bold text-sm transition-all ${!currentProduct.is_installed ? 'bg-[#075E80] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                        >
+                                            Non Installé
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCurrentProduct({...currentProduct, is_installed: true})}
+                                            className={`flex-1 h-14 rounded-xl font-bold text-sm transition-all ${currentProduct.is_installed ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                        >
+                                            Installé
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
+                                        Emplacement {!currentProduct.is_installed && <span className="text-rose-500">*</span>}
+                                    </label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 pointer-events-none" />
+                                        <select
+                                            required={!currentProduct.is_installed}
+                                            className="w-full h-14 pl-12 pr-6 border-slate-100 rounded-2xl focus:ring-4 focus:ring-[#075E80]/5 font-bold text-slate-700 bg-white appearance-none"
+                                            value={currentProduct.emplacement_id}
+                                            onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}
+                                        >
+                                            <option value="">Sélectionner un emplacement</option>
+                                            {emplacementsList
+                                                .filter(emp => String(emp.site_id) === String(currentProduct.site_id))
+                                                .map(emp => (
+                                                    <option key={emp.id} value={emp.id}>{emp.code}</option>
+                                                ))
+                                            }
+                                        </select>
+                                    </div>
+                                    {!currentProduct.is_installed && !currentProduct.emplacement_id && (
+                                        <p className="text-[10px] text-rose-500 font-bold ml-1">Obligatoire pour les produits non installés</p>
+                                    )}
                                 </div>
                             </div>
 

@@ -11,6 +11,11 @@ class Order extends Model
 
     protected $fillable = ['supplier_id', 'site_id', 'product_id', 'quantity', 'status', 'order_number', 'order_date'];
 
+    public function items()
+    {
+        return $this->hasMany(CommandeItem::class, 'order_id');
+    }
+
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);

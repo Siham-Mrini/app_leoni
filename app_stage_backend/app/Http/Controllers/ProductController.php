@@ -10,7 +10,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Product::with(['sites', 'initialSite', 'supplier'])->latest();
+        $query = Product::with(['sites', 'initialSite', 'supplier', 'emplacement'])->latest();
         return response()->json($query->get());
     }
 
@@ -26,6 +26,7 @@ class ProductController extends Controller
             'site_id' => 'required|exists:sites,id',
             'initial_quantity' => 'required|integer|min:0',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'emplacement_id' => 'required|exists:emplacements,id',
         ]);
 
         $user = $request->user();
@@ -60,7 +61,7 @@ class ProductController extends Controller
                 'record_id' => $product->id,
             ]);
 
-            return response()->json($product->load(['sites', 'initialSite', 'supplier']), 201);
+            return response()->json($product->load(['sites', 'initialSite', 'supplier', 'emplacement']), 201);
         }
 
         $product = Product::create([
@@ -73,6 +74,7 @@ class ProductController extends Controller
             'initial_site_id' => $validated['site_id'],
             'supplier_id' => $validated['supplier_id'] ?? null,
             'is_installed' => false,
+            'emplacement_id' => $validated['emplacement_id'],
         ]);
 
         if ($validated['initial_quantity'] >= 0) {
@@ -91,28 +93,29 @@ class ProductController extends Controller
             'record_id' => $product->id,
         ]);
 
-        return response()->json($product->load(['sites', 'initialSite', 'supplier']), 201);
+        return response()->json($product->load(['sites', 'initialSite', 'supplier', 'emplacement']), 201);
     }
 
     public function show(Product $product)
     {
-        return response()->json($product->load(['sites', 'initialSite', 'supplier']));
+        return response()->json($product->load(['sites', 'initialSite', 'supplier', 'emplacement']));
     }
 
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'part_number' => 'required|string|unique:products,part_number,' . $product->id,
+            'part_number' => 'sometimes|required|string|unique:products,part_number,' . $product->id,
             'sku' => 'nullable|string',
-            'type' => 'required|string',
-            'family' => 'required|string',
+            'type' => 'sometimes|required|string',
+            'family' => 'sometimes|required|string',
             'price' => 'nullable|numeric',
             'image_url' => 'nullable|string',
-            'is_installed' => 'boolean',
+            'is_installed' => 'sometimes|boolean',
             'supplier_id' => 'nullable|exists:suppliers,id',
+            'emplacement_id' => 'nullable|exists:emplacements,id',
         ]);
 
-        $product->update($validated);
+        $product->fill($validated)->save();
 
         \App\Models\ActionHistory::create([
             'action_type' => 'UPDATE',
@@ -123,7 +126,7 @@ class ProductController extends Controller
             'record_id' => $product->id,
         ]);
 
-        return response()->json($product->load(['sites', 'initialSite', 'supplier']));
+        return response()->json($product->load(['sites', 'initialSite', 'supplier', 'emplacement']));
     }
 
     public function destroy(Product $product, Request $request)

@@ -17,14 +17,47 @@ const Commandes = () => {
     const [newOrder, setNewOrder] = useState({
         supplier_id: '',
         site_id: user?.site_id || '',
+        order_number: '',
+        order_date: new Date().toISOString().split('T')[0],
+        items: []
+    });
+    const [currentItem, setCurrentItem] = useState({
         product_id: '',
         quantity: 1,
-        order_number: '',
-        order_date: new Date().toISOString().split('T')[0]
+        part_number: '',
+        type: ''
     });
-    const [typeInput, setTypeInput] = useState('');
-    const [partNumberInput, setPartNumberInput] = useState('');
     const [transferSuggestion, setTransferSuggestion] = useState(null);
+
+    const addItem = (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        const part = currentItem.part_number || '';
+        if (part.trim() === '') {
+            alert("Veuillez saisir un part number valide.");
+            return;
+        }
+        
+        const newItem = {
+            product_id: currentItem.product_id || '',
+            part_number: part.trim(),
+            quantity: currentItem.quantity || 1,
+            type: currentItem.type || 'Nouveau'
+        };
+
+        setNewOrder(prev => ({
+            ...prev,
+            items: [...(prev.items || []), newItem]
+        }));
+        
+        setCurrentItem({ product_id: '', quantity: 1, part_number: '', type: '' });
+    };
+
+    const removeItem = (index) => {
+        setNewOrder(prev => ({
+            ...prev,
+            items: prev.items.filter((_, i) => i !== index)
+        }));
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -57,85 +90,36 @@ const Commandes = () => {
     }, [user]);
 
     useEffect(() => {
-        const trimmedPart = partNumberInput?.trim()?.toLowerCase();
-        if (!trimmedPart) {
-            setNewOrder(prev => ({ ...prev, product_id: '' }));
-            return;
-        }
+        const trimmedPart = currentItem.part_number?.trim()?.toLowerCase();
+        if (!trimmedPart) return;
         const product = products.find(p =>
             String(p.part_number || "").trim().toLowerCase() === trimmedPart
         );
         if (product) {
-            setNewOrder(prev => ({ ...prev, product_id: product.id }));
-            if (product.type !== typeInput) setTypeInput(product.type);
+            setCurrentItem(prev => ({ ...prev, product_id: product.id, type: product.type }));
         } else {
-            setNewOrder(prev => ({ ...prev, product_id: '' }));
+            setCurrentItem(prev => ({ ...prev, product_id: '', type: 'Nouveau' }));
         }
-    }, [partNumberInput, products]);
+    }, [currentItem.part_number, products]);
 
-    const handleCreateOrder = async (e, force = false) => {
+    const handleCreateOrder = async (e) => {
         if (e) e.preventDefault();
 
-        let currentOrderId = newOrder.product_id;
-        const searchPN = partNumberInput?.trim()?.toLowerCase();
-
-        // Fallback check if state hasn't synced yet
-        if (!currentOrderId && searchPN) {
-            const p = products.find(p => String(p.part_number || "").trim().toLowerCase() === searchPN);
-            if (p) currentOrderId = p.id;
-        }
-
-        if (!currentOrderId) {
-            if (!typeInput || !partNumberInput) {
-                alert(`Produit non reconnu : "${partNumberInput}". Veuillez saisir un Type et un Part Number valides.`);
-                return;
-            }
-
-            if (window.confirm(`Le produit "${partNumberInput}" (Type: ${typeInput}) n'existe pas dans le catalogue. Voulez-vous le créer automatiquement et passer la commande ?`)) {
-                try {
-                    // Create product first
-                    const prodRes = await api.post('/products', {
-                        part_number: partNumberInput.trim(),
-                        type: typeInput.trim(),
-                        family: 'Composant', // Default family
-                        initial_quantity: 0,
-                        site_id: newOrder.site_id || user.site_id,
-                        supplier_id: newOrder.supplier_id // Add the selected supplier
-                    });
-                    currentOrderId = prodRes.data.id;
-                    fetchData(); // Refresh product list
-                } catch (err) {
-                    alert("Erreur lors de la création du produit : " + (err.response?.data?.message || err.message));
-                    return;
-                }
-            } else {
-                return;
-            }
+        if (newOrder.items.length === 0) {
+            alert("Veuillez ajouter au moins un produit à la commande.");
+            return;
         }
 
         try {
-            const data = force ? { ...newOrder, product_id: currentOrderId, force_order: true } : { ...newOrder, product_id: currentOrderId };
-            const response = await api.post('/orders', data);
-
-            if (response.data.type === 'transfer_suggestion') {
-                setTransferSuggestion({
-                    data: response.data,
-                    dataToForce: data
-                });
-                return;
-            }
-
+            await api.post('/orders', newOrder);
             setShowModal(false);
             setNewOrder({
                 supplier_id: '',
                 site_id: user?.site_id || '',
-                product_id: '',
-                quantity: 1,
                 order_number: '',
-                order_date: new Date().toISOString().split('T')[0]
+                order_date: new Date().toISOString().split('T')[0],
+                items: []
             });
-            setTypeInput('');
-            setPartNumberInput('');
             fetchData();
         } catch (error) {
             const msg = error.response?.data?.message || 'Erreur lors de la création de la commande.';
@@ -278,14 +262,24 @@ const Commandes = () => {
                                                         {theme.label}
                                                     </span>
                                                 </div>
-                                                <h4 className="text-xl font-black text-slate-900 group-hover:text-[#075E80] transition-colors">{order.product?.part_number}</h4>
+                                                <h4 className="text-xl font-black text-slate-900 group-hover:text-[#075E80] transition-colors">
+                                                    {order.items?.length > 0 ? `${order.items.length} Produit(s)` : order.product?.part_number}
+                                                </h4>
                                                 <div className="flex items-center gap-4 mt-1">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{order.product?.type} • <span className="text-[#075E80]">{order.quantity} QTE</span></p>
                                                     <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
                                                         <Calendar size={10} className="text-[#075E80]" />
                                                         {order.order_date || new Date(order.created_at).toLocaleDateString()}
                                                     </div>
                                                 </div>
+                                                {order.items?.length > 0 && (
+                                                    <div className="mt-3 flex flex-wrap gap-2 text-[8px] font-bold text-slate-400 uppercase">
+                                                        {order.items.map(item => (
+                                                            <span key={item.id} className="bg-slate-50 border border-slate-100 px-2 py-1 rounded-lg">
+                                                                {item.product?.part_number} (x{item.quantity})
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -399,7 +393,7 @@ const Commandes = () => {
                             </button>
                         </div>
 
-                        <form onSubmit={handleCreateOrder} className="p-12 space-y-10">
+                        <form onSubmit={handleCreateOrder} className="p-12 space-y-10 overflow-y-auto max-h-[60vh]">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Partenaire Fournisseur</label>
@@ -407,7 +401,7 @@ const Commandes = () => {
                                         <User className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
                                         <select
                                             required
-                                            className="w-full h-16 pl-14 pr-10 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 appearance-none transition-all"
+                                            className="w-full h-16 pl-14 pr-10 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50 appearance-none transition-all"
                                             value={newOrder.supplier_id}
                                             onChange={(e) => setNewOrder({ ...newOrder, supplier_id: e.target.value })}
                                         >
@@ -422,63 +416,17 @@ const Commandes = () => {
                                     <div className="relative">
                                         <Building className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
                                         <select
-                                            required
-                                            className="w-full h-16 pl-14 pr-10 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 appearance-none transition-all"
+                                            required={user?.role !== 'employe'}
+                                            disabled={user?.role === 'employe'}
+                                            className={`w-full h-16 pl-14 pr-10 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 appearance-none transition-all ${user?.role === 'employe' ? 'bg-slate-200 cursor-not-allowed opacity-70' : 'bg-slate-50'}`}
                                             value={newOrder.site_id}
                                             onChange={(e) => setNewOrder({ ...newOrder, site_id: e.target.value })}
                                         >
-                                            <option value="">Automatique (Votre Site)</option>
+                                            <option value="">Sélectionner un site</option>
                                             {sites.map(s => (
                                                 <option key={s.id} value={s.id}>{s.name}</option>
                                             ))}
                                         </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-[#075E80]">Type de Produit</label>
-                                        <div className="relative">
-                                            <Package className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 font-black" />
-                                            <input
-                                                required
-                                                list="types-datalist"
-                                                className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 transition-all font-['Work_Sans']"
-                                                placeholder="Saisir le type..."
-                                                value={typeInput}
-                                                onChange={(e) => setTypeInput(e.target.value)}
-                                            />
-                                            <datalist id="types-datalist">
-                                                {[...new Set(products.map(p => p.type))].map(type => (
-                                                    <option key={type} value={type} />
-                                                ))}
-                                            </datalist>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-[#075E80]">Part Number</label>
-                                        <div className="relative">
-                                            <Hash className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5 font-black" />
-                                            <input
-                                                required
-                                                list="parts-datalist"
-                                                className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 transition-all font-['Work_Sans']"
-                                                placeholder="Saisir le P/N..."
-                                                value={partNumberInput}
-                                                onChange={(e) => setPartNumberInput(e.target.value)}
-                                            />
-                                            <datalist id="parts-datalist">
-                                                {products
-                                                    .filter(p => !typeInput || p.type.toLowerCase().includes(typeInput.toLowerCase()))
-                                                    .map(p => (
-                                                        <option key={p.id} value={p.part_number}>
-                                                            {p.type}
-                                                        </option>
-                                                    ))
-                                                }
-                                            </datalist>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -489,7 +437,7 @@ const Commandes = () => {
                                         <input
                                             required
                                             type="text"
-                                            className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 transition-all"
+                                            className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50 transition-all"
                                             value={newOrder.order_number}
                                             onChange={(e) => setNewOrder({ ...newOrder, order_number: e.target.value })}
                                             placeholder="Ex: PO-2026-001"
@@ -504,34 +452,95 @@ const Commandes = () => {
                                         <input
                                             required
                                             type="date"
-                                            className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 transition-all"
+                                            className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50 transition-all"
                                             value={newOrder.order_date}
                                             onChange={(e) => setNewOrder({ ...newOrder, order_date: e.target.value })}
                                         />
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantite de commande</label>
-                                    <div className="relative">
-                                        <Hash className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-300 w-5 h-5" />
-                                        <input
-                                            required
-                                            type="number"
-                                            min="1"
-                                            className="w-full h-16 pl-14 pr-6 border-slate-100 rounded-2xl focus:ring-8 focus:ring-[#075E80]/5 font-black text-slate-700 bg-slate-50/50 transition-all"
-                                            value={newOrder.quantity}
-                                            onChange={(e) => setNewOrder({ ...newOrder, quantity: parseInt(e.target.value) })}
-                                            placeholder="Ex: 50"
+                            {/* Dynamic Item Entry */}
+                            <div className="bg-slate-50/50 p-8 rounded-3xl border border-dashed border-slate-200 space-y-6">
+                                <h4 className="text-xs font-black text-[#075E80] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <Plus size={14} strokeWidth={3} /> Ajouter des produits
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Part Number</label>
+                                        <input 
+                                            type="text"
+                                            className="w-full h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all"
+                                            placeholder="Saisir un part number..."
+                                            value={currentItem.part_number}
+                                            onChange={(e) => setCurrentItem({...currentItem, part_number: e.target.value})}
+                                            onKeyDown={(e) => {
+                                                if(e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addItem();
+                                                }
+                                            }}
                                         />
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Quantité</label>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="number" 
+                                                min="1"
+                                                className="w-full h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all"
+                                                value={currentItem.quantity}
+                                                onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
+                                                onKeyDown={(e) => {
+                                                    if(e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        addItem();
+                                                    }
+                                                }}
+                                            />
+                                            <button 
+                                                type="button" 
+                                                onClick={addItem}
+                                                className="h-14 px-4 bg-[#075E80] text-white rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center shrink-0"
+                                            >
+                                                <Plus size={20} />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* List of Added Items */}
+                                {newOrder.items.length > 0 && (
+                                    <div className="mt-8 space-y-3">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Articles dans la commande ({newOrder.items.length})</p>
+                                        {newOrder.items.map((item, index) => (
+                                            <div key={index} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-in slide-in-from-right-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-[#075E80]/5 rounded-xl flex items-center justify-center text-[#075E80]">
+                                                        <Package size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-800 text-sm">{item.part_number}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{item.type} • {item.quantity} QTE</p>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => removeItem(index)}
+                                                    className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                                                >
+                                                    <XCircle size={18} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-6 flex gap-6">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-20 bg-slate-50 text-slate-400 rounded-3xl font-black hover:bg-slate-100 hover:text-slate-600 transition-all uppercase tracking-widest text-[10px]">Annuler</button>
                                 <button type="submit" className="flex-1 h-20 bg-[#075E80] text-white rounded-3xl font-black hover:bg-slate-900 transition-all shadow-2xl shadow-blue-900/20 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95">
-                                    Confirmer l'Ordre <ArrowRight size={18} />
+                                    Confirmer l'Ordre Multi-Produits <ArrowRight size={18} />
                                 </button>
                             </div>
                         </form>

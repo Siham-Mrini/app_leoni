@@ -117,7 +117,8 @@ const Utilisateurs = () => {
 
     const getRoleConfig = (role) => {
         switch (role) {
-            case 'admin': return { label: 'Administrateur', color: 'bg-purple-500', icon: ShieldCheck, text: 'text-purple-600' };
+            case 'admin': return { label: 'Service IT', color: 'bg-slate-800', icon: ShieldCheck, text: 'text-slate-900' };
+            case 'manager': return { label: 'Manager Logistique', color: 'bg-purple-500', icon: Briefcase, text: 'text-purple-600' };
             case 'fournisseur': return { label: 'Fournisseur', color: 'bg-amber-500', icon: Briefcase, text: 'text-amber-600' };
             default: return { label: 'Employé', color: 'bg-[#1a2b4b]', icon: UserCircle, text: 'text-[#1a2b4b]' };
         }
@@ -185,7 +186,8 @@ const Utilisateurs = () => {
                                         <div className="px-4 py-1.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2 group-hover:bg-[#1a2b4b] group-hover:text-white transition-colors">
                                             <Building2 size={12} className="text-[#1a2b4b] group-hover:text-white" />
                                             <span className="text-[10px] font-black uppercase tracking-widest">
-                                                {u.role === 'admin' ? 'Contrôle Total' 
+                                                {u.role === 'admin' ? 'Système IT' 
+                                                : u.role === 'manager' ? 'Supervision Globale'
                                                 : u.role === 'employe' ? (u.site?.name || 'Direction')
                                                 : (suppliers.find(s => s.id === u.supplier_id)?.name || 'Partenaire')}
                                             </span>
@@ -248,8 +250,8 @@ const Utilisateurs = () => {
 
                             <div className="space-y-6 mb-10">
                                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">Niveau d'Accès</label>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {['admin', 'employe'].map(r => (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {['admin', 'manager', 'employe'].map(r => (
                                         <div
                                             key={r}
                                             onClick={() => setCurrentUser({...currentUser, role: r})}

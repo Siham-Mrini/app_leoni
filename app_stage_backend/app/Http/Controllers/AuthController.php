@@ -45,16 +45,11 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        Log::info('Tentative de connexion pour : ' . $request->email);
-
         if (!Auth::attempt($request->only('email', 'password'))) {
-            Log::warning('Échec de Auth::attempt pour : ' . $request->email);
             throw ValidationException::withMessages([
                 'email' => ['Les identifiants sont incorrects.'],
             ]);
         }
-
-        Log::info('Connexion réussie pour : ' . $request->email);
 
         $user = User::where('email', $request->email)->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;

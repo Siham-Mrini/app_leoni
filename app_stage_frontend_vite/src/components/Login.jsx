@@ -17,8 +17,13 @@ const Login = () => {
         setLoading(true);
         setLoginError('');
         try {
-            await login(email, password);
-            navigate('/');
+            const loggedUser = await login(email, password);
+            // Admin va directement à la gestion des utilisateurs
+            if (loggedUser?.role?.toLowerCase() === 'admin') {
+                navigate('/utilisateurs');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setLoginError(err.response?.data?.message || 'Identifiants incorrects.');
         } finally {

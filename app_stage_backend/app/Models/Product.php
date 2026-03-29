@@ -9,7 +9,12 @@ class Product extends Model
 {
     use HasFactory, \App\Traits\LogsActions;
 
-    protected $fillable = ['part_number', 'sku', 'type', 'family', 'price', 'image_url', 'supplier_id', 'is_installed', 'initial_site_id'];
+    protected $fillable = ['part_number', 'sku', 'type', 'family', 'price', 'image_url', 'supplier_id', 'is_installed', 'initial_site_id', 'emplacement_id'];
+
+    public function emplacement()
+    {
+        return $this->belongsTo(Emplacement::class);
+    }
 
     public function initialSite()
     {
@@ -19,7 +24,7 @@ class Product extends Model
     public function sites()
     {
         return $this->belongsToMany(Site::class, 'site_product')
-                    ->withPivot('quantity', 'installed_quantity')
+                    ->withPivot('quantity', 'installed_quantity', 'pending_quantity')
                     ->withTimestamps();
     }
 

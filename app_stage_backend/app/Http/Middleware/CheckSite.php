@@ -22,12 +22,14 @@ class CheckSite
         }
 
         // site ID from request or route
-        $siteId = $request->input('site_id');
+        $siteId = $request->input('site_id') 
+                 ?? $request->input('source_site_id') 
+                 ?? $request->input('destination_site_id');
         
-        // Specific logic for transfers: allow if user is either source or destination
+        // Specific logic for transfers/transformations: allow if user is either source or destination
         if (!$siteId) {
-            $from = $request->input('from_site_id');
-            $to = $request->input('to_site_id');
+            $from = $request->input('from_site_id') ?? $request->input('source_site_id');
+            $to = $request->input('to_site_id') ?? $request->input('destination_site_id');
             
             if ($from && $to) {
                 // If both are present (creating), allow if user is either one
@@ -36,19 +38,29 @@ class CheckSite
                 }
                 $siteId = $from; // Fallback for error message
             } else {
-                // For route-model based actions (validate, complete, refuse, cancel)
-                // check if the user's site participates as source OR destination
-                $transfer = $request->route('transfer');
-                if ($transfer) {
-                    if ($user->site_id == $transfer->from_site_id || $user->site_id == $transfer->to_site_id) {
+                // For route-model based actions
+                $transformation = $request->route('transformation');
+                if ($transformation) {
+                    if ($user->site_id == $transformation->source_site_id || $user->site_id == $transformation->destination_site_id) {
                         return $next($request);
                     }
-                    $siteId = $transfer->from_site_id; // Fallback for error message
-                } else {
-                    $siteId = $from ?? $to
-                             ?? ($request->route('order') ? $request->route('order')->site_id : null)
-                             ?? ($request->route('site') ? $request->route('site')->id : null);
+                    $siteId = $transformation->source_site_id;
                 }
+                
+                $emplacement = $request->route('emplacement');
+                if ($emplacement) {
+                    if ($user->site_id == $emplacement->site_id) {
+                        return $next($request);
+                    }
+                    $siteId = $emplacement->site_id;
+                }
+
+                $order = $request->route('order');
+                $site = $request->route('site');
+                
+                $siteId = $siteId 
+                         ?? ($order ? $order->site_id : null)
+                         ?? ($site ? $site->id : null);
             }
         }
 

@@ -17,6 +17,7 @@ const Transferts = () => {
         product_id: '', 
         quantity: 1 
     });
+    const [transferType, setTransferType] = useState('pull'); // 'pull' or 'push'
     const [sourceStock, setSourceStock] = useState([]);
 
     const fetchData = async () => {
@@ -43,16 +44,25 @@ const Transferts = () => {
 
     useEffect(() => {
         if (user?.site_id && showModal) {
-            // New "Pull" workflow: Destination is always the user's site
-            setNewTransfer(prev => ({ 
-                ...prev, 
-                from_site_id: '',
-                to_site_id: user.site_id,
-                product_id: '',
-                quantity: 1
-            }));
+            if (transferType === 'pull') {
+                setNewTransfer(prev => ({ 
+                    ...prev, 
+                    from_site_id: '',
+                    to_site_id: user.site_id,
+                    product_id: '',
+                    quantity: 1
+                }));
+            } else {
+                setNewTransfer(prev => ({ 
+                    ...prev, 
+                    from_site_id: user.site_id,
+                    to_site_id: '',
+                    product_id: '',
+                    quantity: 1
+                }));
+            }
         }
-    }, [user, showModal]);
+    }, [user, showModal, transferType]);
 
     useEffect(() => {
         const fetchSourceStock = async () => {
@@ -284,17 +294,20 @@ const Transferts = () => {
                                     <div className="space-y-4">
                                         {transfer.status === 'demande' && (
                                             <>
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.from_site_id) && (
+                                                {/* Valider : source seulement (+ admin/manager) */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-[#1a2b4b] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-900 transition-all">
                                                         <CheckCircle2 size={20} /> Valider la Demande
                                                     </button>
                                                 )}
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.from_site_id) && (
+                                                {/* Refuser : source seulement (+ admin/manager) */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
                                                         Refuser la Demande
                                                     </button>
                                                 )}
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.to_site_id) && (
+                                                {/* Annuler : source seulement (+ admin/manager) */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
                                                         Annuler ma Demande
                                                     </button>
@@ -304,17 +317,20 @@ const Transferts = () => {
 
                                         {transfer.status === 'en cours' && (
                                             <>
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.to_site_id) && (
+                                                {/* Confirmer réception : source OU destination (les deux) + admin/manager */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCompleteTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all">
                                                         <CheckCircle2 size={20} /> Confirmer Réception
                                                     </button>
                                                 )}
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.to_site_id) && (
+                                                {/* Refuser réception : source OU destination (les deux) + admin/manager */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
                                                         Refuser Réception
                                                     </button>
                                                 )}
-                                                {(user?.role === 'admin' || user?.role === 'employe' || user?.site_id === transfer.from_site_id) && (
+                                                {/* Annuler expédition : source seulement + admin/manager */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
                                                         Annuler Expédition
                                                     </button>
@@ -361,34 +377,46 @@ const Transferts = () => {
                         </div>
 
                         <form onSubmit={handleCreateTransfer} className="p-12 space-y-12">
+                            {user?.role !== 'admin' && (
+                                <div className="flex gap-4">
+                                    <button type="button" onClick={() => setTransferType('pull')} className={`flex-1 h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${transferType === 'pull' ? 'bg-[#1a2b4b] text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Demander du stock (Pull)</button>
+                                    <button type="button" onClick={() => setTransferType('push')} className={`flex-1 h-14 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${transferType === 'push' ? 'bg-[#1a2b4b] text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}>Envoyer du stock (Push)</button>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-2 gap-10">
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Site Source (Expéditeur)</label>
-                                    <select required className="w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all"
+                                    <select required 
+                                        disabled={user?.role !== 'admin' && transferType === 'push'}
+                                        className={`w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all ${(user?.role !== 'admin' && transferType === 'push') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         value={newTransfer.from_site_id}
                                         onChange={(e) => setNewTransfer({ ...newTransfer, from_site_id: e.target.value })}
                                     >
-                                        <option value="">Sélectionner le site source...</option>
-                                        {sites
-                                          .filter(s => (user?.role === 'admin' || s.id !== user?.site_id))
-                                          .map(s => <option key={s.id} value={s.id}>{s.name}</option>)
-                                        }
+                                        {user?.role !== 'admin' && transferType === 'push' ? (
+                                            <option value={user?.site_id}>{sites.find(s => s.id == user?.site_id)?.name || 'Mon Site'}</option>
+                                        ) : (
+                                            <>
+                                                <option value="">Sélectionner le site source...</option>
+                                                {sites.filter(s => (user?.role === 'admin' || s.id !== user?.site_id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </>
+                                        )}
                                     </select>
                                 </div>
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Destination (Récepteur)</label>
                                     <select required 
-                                        disabled={user?.role !== 'admin'}
-                                        className={`w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all ${user?.role !== 'admin' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        disabled={user?.role !== 'admin' && transferType === 'pull'}
+                                        className={`w-full h-18 px-8 bg-slate-50 border-2 border-slate-100 rounded-3xl font-black text-slate-700 outline-none focus:border-[#1a2b4b] transition-all ${(user?.role !== 'admin' && transferType === 'pull') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         value={newTransfer.to_site_id}
                                         onChange={(e) => setNewTransfer({ ...newTransfer, to_site_id: e.target.value })}
                                     >
-                                        {user?.role !== 'admin' ? (
+                                        {user?.role !== 'admin' && transferType === 'pull' ? (
                                             <option value={user?.site_id}>{sites.find(s => s.id == user?.site_id)?.name || 'Mon Site'}</option>
                                         ) : (
                                             <>
                                                 <option value="">Sélectionner destination...</option>
-                                                {sites.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                                {sites.filter(s => (user?.role === 'admin' || s.id !== user?.site_id)).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                             </>
                                         )}
                                     </select>
