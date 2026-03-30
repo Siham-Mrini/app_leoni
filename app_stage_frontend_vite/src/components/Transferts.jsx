@@ -317,20 +317,20 @@ const Transferts = () => {
 
                                         {transfer.status === 'en cours' && (
                                             <>
-                                                {/* Confirmer réception : source OU destination (les deux) + admin/manager */}
-                                                {( user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {/* Confirmer réception : source OU destination OU admin/manager */}
+                                                {( user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCompleteTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all">
                                                         <CheckCircle2 size={20} /> Confirmer Réception
                                                     </button>
                                                 )}
-                                                {/* Refuser réception : source OU destination (les deux) + admin/manager */}
-                                                {( user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {/* Refuser réception : source OU destination OU admin/manager */}
+                                                {( user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
                                                         Refuser Réception
                                                     </button>
                                                 )}
-                                                {/* Annuler expédition : source seulement + admin/manager */}
-                                                {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {/* Annuler expédition : source seulement OU admin/manager */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
                                                         Annuler Expédition
                                                     </button>
