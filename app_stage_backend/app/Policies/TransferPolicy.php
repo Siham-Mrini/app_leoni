@@ -12,15 +12,8 @@ class TransferPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->role === 'admin') {
-            if (in_array($ability, ['viewAny', 'view'])) {
-                return null; // Admin peut lire s'il le souhaite (ou on peut interdire)
-            }
-            return false; // Admin ne peut pas interagir
-        }
-        
-        if ($user->role === 'manager') {
-            return true; // Manager a tous les droits sur les transferts
+        if (in_array($user->role, ['admin', 'manager'])) {
+            return true; // L'Admin et le Manager ont tous les droits
         }
 
         return null; // Employé -> règles spécifiques

@@ -293,20 +293,20 @@ const Transferts = () => {
 
                                     <div className="space-y-4">
                                         {/* SOURCE ACTIONS */}
-                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'en_attente' && (
+                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'en_attente' && (
                                             <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
                                                 <CheckCircle2 size={18} /> Valider la Demande
                                             </button>
                                         )}
                                         
-                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'validé' && (
+                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'validé' && (
                                             <button onClick={() => handleDeliverTransfer(transfer.id)} className="w-full h-14 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30">
                                                 <Truck size={18} /> Marquer en Livraison
                                             </button>
                                         )}
 
                                         {/* DESTINATION ACTIONS */}
-                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id)) && transfer.status === 'en_livraison' && (
+                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.to_site_id)) && transfer.status === 'en_livraison' && (
                                             <button onClick={() => handleReceiveTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30">
                                                 <Box size={18} /> Confirmer Réception
                                             </button>
