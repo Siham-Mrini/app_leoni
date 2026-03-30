@@ -214,7 +214,7 @@ const Layout = ({ children }) => {
                         <div className="flex items-center gap-4 lg:gap-8 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-slate-50 shadow-sm">
                             <img src="/leoni_logo.png" alt="LEONI" className="h-6 lg:h-10 w-auto object-contain transition-transform hover:scale-105" />
                             <div className="h-8 lg:h-12 w-px bg-slate-200 hidden sm:block mx-2"></div>
-                            <img src="/opex_logo.png" alt="OPEX" className="h-16 lg:h-24 w-auto object-contain hidden sm:block scale-110 drop-shadow-md transition-transform hover:scale-125" />
+                            <img src="/opex_logo.png" alt="OPEX" className="h-6 lg:h-10 w-auto object-contain hidden sm:block transition-transform hover:scale-105" />
                         </div>
                     </div>
 
