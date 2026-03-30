@@ -107,6 +107,11 @@ const Commandes = () => {
     const handleCreateOrder = async (e) => {
         if (e) e.preventDefault();
 
+        if (!newOrder.supplier_id) {
+            alert("Veuillez sélectionner un fournisseur.");
+            return;
+        }
+
         if (newOrder.items.length === 0) {
             alert("Veuillez ajouter au moins un produit à la commande.");
             return;
