@@ -13,9 +13,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActionHistoryController;
 use App\Http\Controllers\EmplacementController;
 
-// PUBLIC DIAGNOSTICS (Force update v2.0)
+// PUBLIC DIAGNOSTICS (Force update v2.6)
 Route::get('health', [OrderController::class, 'health']);
-Route::get('check-db', [OrderController::class, 'checkDb']);
+Route::get('rescue', [OrderController::class, 'rescue']);
 
 Route::post('login', [AuthController::class , 'login']);
 

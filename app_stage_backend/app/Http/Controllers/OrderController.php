@@ -14,42 +14,82 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $query = Order::with(['items.product', 'site', 'supplier'])->latest();
         $user = $request->user();
-        $query = Order::with(['product', 'site', 'supplier', 'items.product'])->latest();
-
         if ($user && $user->role === 'employe') {
             $query->where('site_id', $user->site_id);
         }
-
         return response()->json($query->get());
     }
 
     /**
-     * Diagnostic Health Check (Signature v2.0_FINAL)
+     * Diagnostic Health Check (Signature v2.6_RESCUE)
      */
     public function health()
     {
         return response()->json([
             'status' => 'online',
-            'version' => 'leoni_v2.0_FINAL',
-            'environment' => config('app.env'),
-            'database' => config('database.default'),
+            'version' => 'leoni_v2.6_RESCUE',
             'timestamp' => now()->toIso8601String(),
         ]);
     }
 
     /**
-     * Check Database counts to verify seeder
+     * EMERGENCY RESCUE: Force database initialization
      */
-    public function checkDb()
+    public function rescue()
     {
-        return response()->json([
-            'suppliers_count' => \App\Models\Supplier::count(),
-            'sites_count' => \App\Models\Site::count(),
-            'products_count' => \App\Models\Product::count(),
-            'users_count' => \App\Models\User::count(),
-            'last_supplier' => \App\Models\Supplier::latest()->first(),
-        ]);
+        try {
+            // 1. Create Default Site
+            $site = \App\Models\Site::firstOrCreate(
+                ['name' => 'LEONI Berrechid'],
+                ['location' => 'Berrechid, Maroc']
+            );
+
+            // 2. Create Default Admin
+            $admin = \App\Models\User::updateOrCreate(
+                ['email' => 'admin@leoni.com'],
+                [
+                    'name' => 'admin',
+                    'nom' => 'Admin',
+                    'prenom' => 'System',
+                    'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                    'role' => 'admin',
+                    'site_id' => $site->id,
+                ]
+            );
+
+            // 3. Create Default Suppliers
+            $sups = [
+                ['name' => 'TechSolutions', 'contact_person' => 'Service Commercial'],
+                ['name' => 'DEV MAC', 'contact_person' => 'Support Technique'],
+                ['name' => 'Global Equipement', 'contact_person' => 'Responsable Achat'],
+            ];
+            
+            foreach ($sups as $data) {
+                \App\Models\Supplier::firstOrCreate(
+                    ['name' => $data['name']], 
+                    [
+                        'contact_person' => $data['contact_person'],
+                        'contact_email' => strtolower(str_replace(' ', '', $data['name'])).'@leoni.com'
+                    ]
+                );
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'RESCUE COMPLETE: Admin and Suppliers initialized.',
+                'user' => 'admin@leoni.com',
+                'password' => 'password',
+                'db_states' => [
+                    'suppliers' => \App\Models\Supplier::count(),
+                    'sites' => \App\Models\Site::count(),
+                    'users' => \App\Models\User::count(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
