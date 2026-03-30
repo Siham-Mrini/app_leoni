@@ -23,13 +23,13 @@ class OrderController extends Controller
     }
 
     /**
-     * Diagnostic Health Check (Signature v2.7_VERIFY)
+     * Diagnostic Health Check (Signature v2.8_FINAL)
      */
     public function health()
     {
         return response()->json([
             'status' => 'online',
-            'version' => 'leoni_v2.7_VERIFY',
+            'version' => 'leoni_v2.8_FINAL',
             'timestamp' => now()->toIso8601String(),
         ]);
     }
@@ -65,8 +65,21 @@ class OrderController extends Controller
                     'name' => 'admin',
                     'nom' => 'Admin',
                     'prenom' => 'System',
-                    'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                    'password' => 'password', // NO Hash::make because model has 'hashed' cast
                     'role' => 'admin',
+                    'site_id' => $site->id,
+                ]
+            );
+
+            // 3. Optional: Create Siham account
+            \App\Models\User::updateOrCreate(
+                ['email' => 'siham@gmail.com'],
+                [
+                    'name' => 'siham',
+                    'nom' => 'Siham',
+                    'prenom' => 'User',
+                    'password' => 'password',
+                    'role' => 'employe',
                     'site_id' => $site->id,
                 ]
             );
