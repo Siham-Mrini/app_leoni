@@ -13,6 +13,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ActionHistoryController;
 use App\Http\Controllers\EmplacementController;
 
+Route::get('health', [App\Http\Controllers\OrderController::class, 'health']);
+
 Route::post('login', [AuthController::class , 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -20,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('me', [AuthController::class , 'updateProfile']);
     Route::put('me/password', [AuthController::class , 'updatePassword']);
     Route::post('logout', [AuthController::class , 'logout']);
+    Route::get('health', [OrderController::class, 'health']);
 
     // Admin Only
     Route::middleware('role:admin')->group(function () {
@@ -57,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
             );
 
             // Orders management
+            Route::get('health', [OrderController::class, 'health']);
             Route::apiResource('orders', OrderController::class)->only(['index', 'show', 'store', 'destroy']);
             Route::post('orders/{order}/receive', [OrderController::class , 'receive']);
             Route::post('orders/{order}/validate', [OrderController::class , 'validateOrder']);

@@ -24,6 +24,17 @@ class OrderController extends Controller
         return response()->json($query->get());
     }
 
+    public function health()
+    {
+        return response()->json([
+            'status' => 'ok',
+            'version' => 'leoni_multi_item_1.0',
+            'database' => config('database.default'),
+            'orders_table_nullable' => \Schema::hasColumn('orders', 'product_id') && \Schema::getColumnType('orders', 'product_id') === 'bigint', // simple check
+            'time' => now()->toDateTimeString(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
