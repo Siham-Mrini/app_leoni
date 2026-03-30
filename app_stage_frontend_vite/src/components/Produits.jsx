@@ -196,7 +196,7 @@ const Produits = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl lg:rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
+            <div className="bg-white rounded-3xl lg:rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 overflow-visible relative">
                 {loading ? (
                     <div className="p-24 animate-pulse text-center space-y-4">
                         <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto"></div>
@@ -240,18 +240,32 @@ const Produits = () => {
                                                         <MapPin size={8} /> {product.emplacement.code}
                                                     </button>
                                                 ) : <button className="text-[10px] text-emerald-500 font-black uppercase tracking-widest hover:underline">Définir</button>}
-                                                <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-100 hidden group-hover/loc:block z-20 p-2 overflow-y-auto max-h-48 scrollbar-hide">
-                                                    <p className="p-2 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Assigner Emplacement</p>
-                                                    <button onClick={() => handleQuickAssignEmplacement(product.id, null)} className="w-full text-left p-2 text-[9px] font-bold text-rose-500 hover:bg-rose-50 rounded-lg mb-1">Aucun</button>
-                                                    {emplacementsList.map(emp => (
-                                                        <button 
-                                                            key={emp.id} 
-                                                            onClick={() => handleQuickAssignEmplacement(product.id, emp.id)}
-                                                            className={`w-full text-left p-2 text-[9px] font-bold rounded-lg transition-colors ${product.emplacement_id === emp.id ? 'bg-[#075E80] text-white' : 'text-slate-600 hover:bg-slate-50'}`}
-                                                        >
-                                                            {emp.code}
-                                                        </button>
-                                                    ))}
+                                                <div className="absolute left-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-100 hidden group-hover/loc:block z-[100] p-3 overflow-y-auto max-h-64 scrollbar-hide animate-in slide-in-from-top-2 duration-200 ring-4 ring-[#075E80]/5">
+                                                    <div className="px-3 py-2 border-b border-slate-50 mb-2">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assignation Emplacement</p>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleQuickAssignEmplacement(product.id, null)} 
+                                                        className="w-full text-left px-4 py-2.5 text-[10px] font-black text-rose-500 hover:bg-rose-50 rounded-xl mb-2 flex items-center gap-2 transition-colors"
+                                                    >
+                                                        <XCircle size={14} /> Ne pas définir
+                                                    </button>
+                                                    <div className="space-y-1">
+                                                        {emplacementsList.map(emp => (
+                                                            <button 
+                                                                key={emp.id} 
+                                                                onClick={() => handleQuickAssignEmplacement(product.id, emp.id)}
+                                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-black rounded-xl transition-all flex items-center gap-3 ${
+                                                                    product.emplacement_id === emp.id 
+                                                                    ? 'bg-[#075E80] text-white shadow-lg shadow-blue-900/20' 
+                                                                    : 'text-slate-600 hover:bg-slate-50 hover:pl-6'
+                                                                }`}
+                                                            >
+                                                                <MapPin size={12} className={product.emplacement_id === emp.id ? 'text-white' : 'text-slate-300'} />
+                                                                {emp.code}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
