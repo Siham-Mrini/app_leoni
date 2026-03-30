@@ -25,18 +25,30 @@ class OrderController extends Controller
     }
 
     /**
-     * Diagnostic Health Check
-     * This method helps verify that the latest multi-item order logic is deployed.
+     * Diagnostic Health Check (Signature v2.0_FINAL)
      */
     public function health()
     {
         return response()->json([
             'status' => 'online',
-            'version' => 'leoni_multi_item_v1.1_forced',
+            'version' => 'leoni_v2.0_FINAL',
             'environment' => config('app.env'),
             'database' => config('database.default'),
-            'orders_table_ready' => \Schema::hasColumn('orders', 'items_array') || true, // placeholder for next step if needed
             'timestamp' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Check Database counts to verify seeder
+     */
+    public function checkDb()
+    {
+        return response()->json([
+            'suppliers_count' => \App\Models\Supplier::count(),
+            'sites_count' => \App\Models\Site::count(),
+            'products_count' => \App\Models\Product::count(),
+            'users_count' => \App\Models\User::count(),
+            'last_supplier' => \App\Models\Supplier::latest()->first(),
         ]);
     }
 

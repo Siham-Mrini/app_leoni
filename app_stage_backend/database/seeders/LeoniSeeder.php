@@ -13,28 +13,29 @@ class LeoniSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Create Sites
+        // 1. Create Default Sites
         $sites = [
-            ['name' => 'LEONI Wiring Systems', 'location' => 'Bouskoura'],
-            ['name' => 'LEONI Berrechid', 'location' => 'Berrechid'],
-            ['name' => 'LEONI Ain Sebaa', 'location' => 'Casablanca'],
+            ['name' => 'LEONI Berrechid', 'location' => 'Berrechid, Maroc'],
+            ['name' => 'LEONI Bouskoura', 'location' => 'Bouskoura, Maroc'],
+            ['name' => 'LEONI Ain Sebaa', 'location' => 'Casablanca, Maroc'],
         ];
 
         foreach ($sites as $siteData) {
             Site::firstOrCreate(['name' => $siteData['name']], $siteData);
         }
 
-        $bouskoura = Site::where('name', 'LEONI Wiring Systems')->first();
-
-        // 2. Create Suppliers
+        // 2. Create Default Suppliers
         $suppliers = [
-            ['name' => 'TechSolutions SARL', 'contact_person' => 'Ahmed Alaoui', 'phone' => '0522001122'],
-            ['name' => 'Global Equipement', 'contact_person' => 'Maria Santos', 'phone' => '0522334455'],
+            ['name' => 'TechSolutions', 'contact_email' => 'contact@techsolutions.com'],
+            ['name' => 'DEV MAC', 'contact_email' => 'contact@devmac.com'],
+            ['name' => 'Global Equipement', 'contact_email' => 'sales@globalequip.com'],
         ];
 
         foreach ($suppliers as $supData) {
             Supplier::firstOrCreate(['name' => $supData['name']], $supData);
         }
+
+        $this->command->info('Seeding completed successfully: Sites and Suppliers are ready.');
 
         $techSup = Supplier::where('name', 'TechSolutions SARL')->first();
 
