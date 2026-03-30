@@ -17,7 +17,7 @@ class CheckSite
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || $user->role === 'admin' || $user->role === 'manager' || $request->isMethod('GET')) {
+        if (!$user || $user->role === 'admin' || $request->isMethod('GET')) {
             return $next($request);
         }
 

@@ -49,11 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         Route::middleware('site')->group(function () {
             Route::apiResource('products', ProductController::class);
-            Route::apiResource('transfers', TransferController::class);
+            Route::apiResource('transfers', TransferController::class)->except(['destroy']);
             Route::post('transfers/{transfer}/validate', [TransferController::class , 'validateTransfer']);
-            Route::post('transfers/{transfer}/complete', [TransferController::class , 'complete']);
-            Route::post('transfers/{transfer}/refuse', [TransferController::class , 'refuse']);
-            Route::post('transfers/{transfer}/cancel', [TransferController::class , 'cancel']);
+            Route::post('transfers/{transfer}/mark-as-delivered', [TransferController::class , 'markAsDelivered']);
+            Route::post('transfers/{transfer}/mark-as-received', [TransferController::class , 'markAsReceived']);
             Route::post('installations', [InstallationController::class , 'install']);
             Route::get('installations/stats', [InstallationController::class , 'stats']);
             Route::apiResource('emplacements', EmplacementController::class);

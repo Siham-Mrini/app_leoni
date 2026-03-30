@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import api from '../api';
-import { ArrowLeftRight, Plus, MapPin, Package, Box, CheckCircle2, Search, Calendar, AlertCircle, Trash2, XCircle, ArrowRight, Layers, Hash, Activity, Send, Truck } from 'lucide-react';
+import { ArrowLeftRight, Plus, MapPin, Package, Box, CheckCircle2, Search, Calendar, Activity, Send, Truck, Layers, Hash, ArrowRight, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Transferts = () => {
@@ -73,7 +73,6 @@ const Transferts = () => {
             try {
                 const response = await api.get(`/sites/${newTransfer.from_site_id}`);
                 setSourceStock(response.data.products || []);
-                // Reset product if not in new source stock
                 setNewTransfer(prev => ({ ...prev, product_id: '' }));
             } catch (error) {
                 console.error("Error fetching source stock:", error);
@@ -94,7 +93,7 @@ const Transferts = () => {
     };
 
     const handleValidateTransfer = async (id) => {
-        if (window.confirm('Valider ce transfert ? Le stock sera déduit du site source.')) {
+        if (window.confirm('Valider ce transfert ? Le site source s\'engage à l\'expédier.')) {
             try {
                 await api.post(`/transfers/${id}/validate`);
                 fetchData();
@@ -104,35 +103,24 @@ const Transferts = () => {
         }
     };
 
-    const handleCompleteTransfer = async (id) => {
-        if (window.confirm('Valider la réception ? Le stock du site de destination sera augmenté.')) {
+    const handleDeliverTransfer = async (id) => {
+        if (window.confirm('Marquer en livraison ? Le stock sera déduit de votre site.')) {
             try {
-                await api.post(`/transfers/${id}/complete`);
+                await api.post(`/transfers/${id}/mark-as-delivered`);
                 fetchData();
             } catch (error) {
-                alert(error.response?.data?.message || 'Erreur lors de la validation.');
+                alert(error.response?.data?.message || 'Erreur lors de l\'expédition.');
             }
         }
     };
 
-    const handleRefuseTransfer = async (id) => {
-        if (window.confirm('Refuser ce transfert ?')) {
+    const handleReceiveTransfer = async (id) => {
+        if (window.confirm('Valider la réception ? Le stock sera augmenté sur votre site.')) {
             try {
-                await api.post(`/transfers/${id}/refuse`);
+                await api.post(`/transfers/${id}/mark-as-received`);
                 fetchData();
             } catch (error) {
-                alert(error.response?.data?.message || 'Erreur lors du refus.');
-            }
-        }
-    };
-
-    const handleCancelTransfer = async (id) => {
-        if (window.confirm('Annuler ce transfert ?')) {
-            try {
-                await api.post(`/transfers/${id}/cancel`);
-                fetchData();
-            } catch (error) {
-                alert(error.response?.data?.message || 'Erreur lors de l\'annulation.');
+                alert(error.response?.data?.message || 'Erreur lors de la confirmation de réception.');
             }
         }
     };
@@ -153,12 +141,14 @@ const Transferts = () => {
                         />
                     </div>
                 </div>
+                {user?.role !== 'admin' && (
                 <button 
                     onClick={() => setShowModal(true)} 
                     className="bg-[#1a2b4b] text-white h-18 px-10 rounded-3xl font-black flex items-center gap-4 hover:scale-105 transition-all shadow-2xl shadow-blue-900/20 active:scale-95 group uppercase tracking-widest text-xs"
                 >
                     <Plus size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" /> Nouveau Transfert
                 </button>
+                )}
             </div>
 
             <div className="grid grid-cols-1 gap-10">
@@ -178,26 +168,24 @@ const Transferts = () => {
                         <div key={transfer.id} className="bg-white rounded-3xl lg:rounded-[4rem] p-6 lg:p-12 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-blue-900/5 transition-all group relative overflow-hidden">
                             <div className={`absolute top-0 left-0 w-4 h-full ${
                                 transfer.status === 'reçu' ? 'bg-emerald-500' : 
-                                transfer.status === 'refusé' ? 'bg-rose-500' : 
-                                transfer.status === 'annulé' ? 'bg-slate-300' : 
-                                'bg-amber-400 animate-pulse'
+                                transfer.status === 'en_livraison' ? 'bg-blue-500' : 
+                                transfer.status === 'validé' ? 'bg-indigo-400' : 
+                                'bg-amber-400'
                             }`}></div>
                             
-                            <div className="flex flex-col xl:flex-row justify-between items-center gap-8 lg:gap-12">
+                            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 lg:gap-12">
                                 <div className="flex-1 w-full relative">
                                     <div className="flex flex-wrap items-center gap-3 lg:gap-4 mb-8 lg:mb-10">
                                         <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${
                                             transfer.status === 'reçu' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 
-                                            transfer.status === 'refusé' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 
-                                            transfer.status === 'en cours' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                            transfer.status === 'annulé' ? 'bg-slate-100 text-slate-500 border border-slate-200' :
+                                            transfer.status === 'en_livraison' ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                            transfer.status === 'validé' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' :
                                             'bg-amber-50 text-amber-600 border border-amber-100'
                                         }`}>
                                             {transfer.status === 'reçu' ? 'Livré' : 
-                                             transfer.status === 'refusé' ? 'Refusé' : 
-                                             transfer.status === 'en cours' ? 'En Transit' :
-                                             transfer.status === 'annulé' ? 'Annulé' : 
-                                             'Initié (En attente)'}
+                                             transfer.status === 'en_livraison' ? 'En Transit' :
+                                             transfer.status === 'validé' ? 'Validé' : 
+                                             'En attente'}
                                         </span>
                                         {user?.site_id && (
                                             <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${transfer.to_site_id === user.site_id ? 'bg-blue-50 text-[#1a2b4b] border border-blue-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
@@ -209,7 +197,7 @@ const Transferts = () => {
                                          </span>
                                          {transfer.transfer_date && (
                                              <span className="text-slate-400 font-bold text-[9px] lg:text-[10px] uppercase tracking-widest flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-lg">
-                                                 <Calendar size={12} /> {transfer.transfer_date}
+                                                 <Calendar size={12} /> {new Date(transfer.transfer_date).toLocaleDateString()}
                                              </span>
                                          )}
                                      </div>
@@ -232,7 +220,7 @@ const Transferts = () => {
                                                      <span className="text-2xl lg:text-4xl font-black text-[#1a2b4b] tracking-tighter leading-none">{transfer.quantity}</span>
                                                      <span className="text-[8px] lg:text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1 lg:mt-2">Volume</span>
                                                  </div>
-                                                 <div className={`absolute right-4 sm:right-0 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full ${transfer.status === 'reçu' ? 'text-emerald-500' : 'text-amber-500 animate-[bounce_1.5s_infinite]'}`}>
+                                                 <div className={`absolute right-4 sm:right-0 top-1/2 -translate-y-1/2 w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center rounded-full ${transfer.status === 'reçu' ? 'text-emerald-500' : 'text-amber-500'}`}>
                                                      <ArrowRight size={28} className="sm:hidden -rotate-90 sm:rotate-0" />
                                                      <ArrowRight size={32} strokeWidth={3} className="hidden sm:block" />
                                                  </div>
@@ -250,27 +238,38 @@ const Transferts = () => {
                                          </div>
                                      </div>
 
+                                     {/* Workflow Progress */}
                                      <div className="mt-10 lg:mt-12 pt-6 lg:pt-8 border-t border-slate-50">
-                                         <div className="flex items-center justify-between relative px-4 lg:px-12">
-                                             <div className="absolute top-1/2 left-10 lg:left-24 right-10 lg:right-24 h-1 bg-slate-100 -translate-y-1/2"></div>
-                                             <div className="absolute top-1/2 left-10 lg:left-24 h-1 bg-[#1a2b4b] -translate-y-1/2 transition-all duration-1000" style={{ 
-                                                 width: transfer.status === 'reçu' ? '100%' : transfer.status === 'en cours' ? '50%' : '0%',
-                                                 opacity: (transfer.status === 'refusé' || transfer.status === 'annulé') ? 0.3 : 1
+                                         <div className="flex items-center justify-between relative px-2 lg:px-12">
+                                             <div className="absolute top-1/2 left-8 lg:left-20 right-8 lg:right-20 h-1 bg-slate-100 -translate-y-1/2"></div>
+                                             
+                                             <div className="absolute top-1/2 left-8 lg:left-20 h-1 bg-[#1a2b4b] -translate-y-1/2 transition-all duration-1000" style={{ 
+                                                 width: transfer.status === 'reçu' ? '100%' : 
+                                                        transfer.status === 'en_livraison' ? '66%' : 
+                                                        transfer.status === 'validé' ? '33%' : '0%'
                                              }}></div>
                                              
                                              {[
-                                                 { id: 'demande', label: 'Initié', icon: <Send size={10} /> },
-                                                 { id: 'en cours', label: 'Transit', icon: <Truck size={10} /> },
-                                                 { id: 'reçu', label: 'Livré', icon: <Box size={10} /> }
+                                                 { id: 'en_attente', label: 'Demande', icon: <Send size={12} /> },
+                                                 { id: 'validé', label: 'Validé', icon: <CheckCircle2 size={12} /> },
+                                                 { id: 'en_livraison', label: 'Livraison', icon: <Truck size={12} /> },
+                                                 { id: 'reçu', label: 'Reçu', icon: <Box size={12} /> }
                                              ].map((step, idx) => {
-                                                 const isDone = (transfer.status === 'reçu') || (transfer.status === 'en cours' && idx <= 1) || (idx === 0);
-                                                 const isCurrent = (transfer.status === 'demande' && idx === 0) || (transfer.status === 'en cours' && idx === 1) || (transfer.status === 'reçu' && idx === 2);
+                                                 const stepsMap = {'en_attente': 0, 'validé': 1, 'en_livraison': 2, 'reçu': 3};
+                                                 const currentStepIdx = stepsMap[transfer.status] || 0;
+                                                 const isDone = idx <= currentStepIdx;
+                                                 const isCurrent = idx === currentStepIdx;
+
                                                  return (
-                                                     <div key={step.id} className="relative z-10 flex flex-col items-center gap-2 lg:gap-3">
-                                                         <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl lg:rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${isDone ? 'bg-[#1a2b4b] border-[#1a2b4b] text-white' : 'bg-white border-slate-100 text-slate-300'}`}>
+                                                     <div key={step.id} className="relative z-10 flex flex-col items-center gap-2">
+                                                         <div className={`w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center border-2 transition-all duration-500 shadow-sm ${
+                                                             isDone ? 'bg-[#1a2b4b] border-[#1a2b4b] text-white scale-110' : 'bg-white border-slate-100 text-slate-300'
+                                                         }`}>
                                                              {step.icon}
                                                          </div>
-                                                         <span className={`text-[7px] lg:text-[9px] font-black uppercase tracking-widest ${isCurrent ? 'text-[#1a2b4b]' : 'text-slate-400'}`}>{step.label}</span>
+                                                         <span className={`text-[7px] lg:text-[8px] font-black uppercase tracking-widest ${isCurrent ? 'text-[#1a2b4b]' : 'text-slate-400'}`}>
+                                                             {step.label}
+                                                         </span>
                                                      </div>
                                                  );
                                              })}
@@ -293,71 +292,64 @@ const Transferts = () => {
                                      </div>
 
                                     <div className="space-y-4">
-                                        {transfer.status === 'demande' && (
-                                            <>
-                                                {/* Valider / Refuser : SOURCE SEULEMENT (+ admin/manager) */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || (user?.site_id && String(user?.site_id) === String(transfer.from_site_id))) && (
-                                                    <>
-                                                        <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-[#1a2b4b] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-900 transition-all">
-                                                            <CheckCircle2 size={20} /> Valider la Demande
-                                                        </button>
-                                                        <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
-                                                            Refuser la Demande
-                                                        </button>
-                                                    </>
-                                                )}
-                                                {/* Annuler : SOURCE SEULEMENT (+ admin/manager) */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || (user?.site_id && String(user?.site_id) === String(transfer.from_site_id))) && (
-                                                    <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
-                                                        Annuler ma Demande
-                                                    </button>
-                                                )}
-                                            </>
+                                        {/* SOURCE ACTIONS */}
+                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'en_attente' && (
+                                            <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
+                                                <CheckCircle2 size={18} /> Valider la Demande
+                                            </button>
+                                        )}
+                                        
+                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'validé' && (
+                                            <button onClick={() => handleDeliverTransfer(transfer.id)} className="w-full h-14 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30">
+                                                <Truck size={18} /> Marquer en Livraison
+                                            </button>
                                         )}
 
-                                        {transfer.status === 'en cours' && (
-                                            <>
-                                                {/* Confirmer réception : source OU destination OU admin/manager */}
-                                                {( user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
-                                                    <button onClick={() => handleCompleteTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all">
-                                                        <CheckCircle2 size={20} /> Confirmer Réception
-                                                    </button>
-                                                )}
-                                                {/* Refuser réception : source OU destination OU admin/manager */}
-                                                {( user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
-                                                    <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
-                                                        Refuser Réception
-                                                    </button>
-                                                )}
-                                                {/* Annuler expédition : source seulement OU admin/manager */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
-                                                    <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
-                                                        Annuler Expédition
-                                                    </button>
-                                                )}
-                                            </>
+                                        {/* DESTINATION ACTIONS */}
+                                        {(user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id)) && transfer.status === 'en_livraison' && (
+                                            <button onClick={() => handleReceiveTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30">
+                                                <Box size={18} /> Confirmer Réception
+                                            </button>
                                         )}
 
-                                        {(transfer.status === 'reçu' || transfer.status === 'refusé' || transfer.status === 'annulé') && (
-                                            <div className={`flex items-center gap-4 p-6 rounded-[2rem] border ${
-                                                transfer.status === 'reçu' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 
-                                                transfer.status === 'refusé' ? 'text-rose-600 bg-rose-50 border-rose-100' : 
-                                                'text-slate-400 bg-slate-50 border-slate-100'
-                                            }`}>
-                                                <Activity size={20} />
+                                        {transfer.status === 'reçu' && (
+                                            <div className="flex items-center gap-4 p-5 rounded-2xl border text-emerald-600 bg-emerald-50 border-emerald-100">
+                                                <CheckCircle2 size={24} />
                                                 <div>
                                                     <p className="font-black text-[10px] uppercase tracking-widest leading-none mb-1">
-                                                        {transfer.status === 'reçu' ? 'Transfert Livré' : transfer.status === 'refusé' ? 'Demande Rejetée' : 'Action Fermée'}
+                                                        Transfert Finalisé
                                                     </p>
-                                                    <p className="text-[10px] font-bold opacity-50">{transfer.status}</p>
+                                                    <p className="text-[10px] font-bold opacity-50">Stock mis à jour avec succès</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Audit Logs Preview */}
+                                        {transfer.logs && transfer.logs.length > 0 && (
+                                            <div className="mt-6 pt-4 border-t border-slate-200">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Journal d'Audit</p>
+                                                <div className="space-y-2 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
+                                                    {transfer.logs.map(log => (
+                                                        <div key={log.id} className="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100">
+                                                            <div>
+                                                                <span className="text-[9px] font-black text-slate-700 capitalize">{log.action}</span>
+                                                                <p className="text-[8px] text-slate-400">Par: {log.user?.name}</p>
+                                                            </div>
+                                                            <span className="text-[8px] text-slate-400 font-mono">
+                                                                {new Date(log.created_at).toLocaleString('fr-FR', {
+                                                                    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))
+                                 </div>
+                             </div>
+                         </div>
+                     ))
                 )}
             </div>
 
@@ -437,7 +429,7 @@ const Transferts = () => {
                                             <option value="">Sélectionner un produit...</option>
                                             {sourceStock.map(p => (
                                                 <option key={p.id} value={p.id}>
-                                                    [{p.type}] {p.part_number} (Dispo: {p.pivot.quantity})
+                                                    [{p.type}] {p.part_number} (Dispo: {p.pivot?.quantity || 0})
                                                 </option>
                                             ))}
                                         </select>
@@ -454,7 +446,7 @@ const Transferts = () => {
 
                             <div className="pt-6 lg:pt-10 flex flex-col sm:flex-row gap-4 lg:gap-6">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-16 lg:h-20 bg-slate-100 text-slate-400 rounded-2xl lg:rounded-3xl font-black uppercase tracking-widest text-[9px] lg:text-[10px]">Abandonner</button>
-                                <button type="submit" className="flex-2 h-16 lg:h-20 bg-[#1a2b4b] text-white rounded-2xl lg:rounded-3xl font-black shadow-2xl shadow-blue-900/40 uppercase tracking-widest text-[9px] lg:text-[10px] flex items-center justify-center gap-4 lg:gap-6">
+                                <button type="submit" className="flex-[2] h-16 lg:h-20 bg-[#1a2b4b] text-white rounded-2xl lg:rounded-3xl font-black shadow-2xl shadow-blue-900/40 uppercase tracking-widest text-[9px] lg:text-[10px] flex items-center justify-center gap-4 lg:gap-6">
                                     Confirmer le Transfert <ArrowRight size={24} />
                                 </button>
                             </div>
