@@ -373,6 +373,26 @@ const Produits = () => {
                                     <input required list="families" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.family} onChange={(e) => setCurrentProduct({ ...currentProduct, family: e.target.value })} />
                                     <datalist id="families">{dynamicFamilies.map(f => <option key={f} value={f} />)}</datalist>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Stock Initial</label>
+                                    <input required type="number" min="0" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.initial_quantity} onChange={(e) => setCurrentProduct({ ...currentProduct, initial_quantity: parseInt(e.target.value) || 0 })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Emplacement</label>
+                                    <select className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.emplacement_id} onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}>
+                                        <option value="">Sélectionner un emplacement</option>
+                                        {emplacementsList.map(e => <option key={e.id} value={e.id}>{e.code}</option>)}
+                                    </select>
+                                </div>
+                                {user?.role === 'admin' && (
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Site Affecté</label>
+                                        <select required className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.site_id} onChange={(e) => setCurrentProduct({ ...currentProduct, site_id: e.target.value })}>
+                                            <option value="">Sélectionner un site</option>
+                                            {sitesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                             <button type="submit" className="w-full h-18 bg-[#075E80] text-white rounded-3xl font-black shadow-2xl hover:bg-slate-900 transition-all uppercase tracking-widest text-xs">{isEditing ? 'Enregistrer' : 'Créer'}</button>
                         </form>
