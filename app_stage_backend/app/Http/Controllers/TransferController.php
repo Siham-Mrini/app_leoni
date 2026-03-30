@@ -119,10 +119,18 @@ class TransferController extends Controller
         $user = $request->user();
 
         // Auth: Site source OU destination peuvent confirmer la réception (+ admin/manager)
-        $isSource = (int)$user->site_id === (int)$transfer->from_site_id;
-        $isDest   = (int)$user->site_id === (int)$transfer->to_site_id;
+        $isSource = (string)$user->site_id === (string)$transfer->from_site_id;
+        $isDest   = (string)$user->site_id === (string)$transfer->to_site_id;
+        
         if ($user->role !== 'admin' && $user->role !== 'manager' && !$isSource && !$isDest) {
-            return response()->json(['message' => 'Non autorisé. Seul le site source ou destination peut confirmer la réception.'], 403);
+            return response()->json([
+                'message' => 'Non autorisé. Seul le site source ou destination peut confirmer la réception.',
+                'debug' => [
+                    'user_site' => $user->site_id,
+                    'from_site' => $transfer->from_site_id,
+                    'to_site' => $transfer->to_site_id
+                ]
+            ], 403);
         }
 
         if ($transfer->status !== 'en cours') {

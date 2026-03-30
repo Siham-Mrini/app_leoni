@@ -55,13 +55,27 @@ class CheckSite
                     $siteId = $emplacement->site_id;
                 }
 
-                $order = $request->route('order');
                 $transfer = $request->route('transfer');
+                if ($transfer) {
+                    // if it's just an ID string, find the model
+                    if (!is_object($transfer)) {
+                        $transfer = \App\Models\Transfer::find($transfer);
+                    }
+                    
+                    if ($transfer) {
+                        if ((string)$user->site_id === (string)$transfer->from_site_id || (string)$user->site_id === (string)$transfer->to_site_id) {
+                            return $next($request);
+                        }
+                        // If not either site, use from_site_id as target for the error check below
+                        $siteId = $transfer->from_site_id;
+                    }
+                }
+                
                 $site = $request->route('site');
+                $order = $request->route('order');
                 
                 $siteId = $siteId 
                          ?? ($order ? $order->site_id : null)
-                         ?? ($transfer ? ($user->site_id == $transfer->to_site_id ? $transfer->to_site_id : $transfer->from_site_id) : null)
                          ?? ($site ? $site->id : null);
             }
         }
