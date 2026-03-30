@@ -39,6 +39,8 @@ const Produits = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
+            const msg = error.response?.data?.message || 'Erreur lors du chargement des données. Vérifiez votre connexion or si la base est vide.';
+            alert(msg);
             setLoading(false);
         }
     };

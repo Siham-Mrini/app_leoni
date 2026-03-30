@@ -46,7 +46,7 @@ class LeoniSeeder extends Seeder
                 'type' => 'Tag',
                 'family' => 'Scanner',
                 'price' => 1200.50,
-                'supplier_id' => $techSup->id
+                'supplier_id' => $techSup ? $techSup->id : null
             ],
             [
                 'part_number' => 'ZBR-310',
@@ -54,12 +54,16 @@ class LeoniSeeder extends Seeder
                 'type' => 'Booléen',
                 'family' => 'Imprimante',
                 'price' => 3500.00,
-                'supplier_id' => $techSup->id
+                'supplier_id' => $techSup ? $techSup->id : null
             ],
         ];
 
         foreach ($products as $prodData) {
-            Product::firstOrCreate(['part_number' => $prodData['part_number']], $prodData);
+            if ($techSup) {
+                Product::firstOrCreate(['part_number' => $prodData['part_number']], $prodData);
+            } else {
+                \Log::warning("Skipping product seeding for " . $prodData['part_number'] . " because supplier not found.");
+            }
         }
 
         $site = Site::firstOrCreate(['name' => 'LEONI Wiring Systems'], ['location' => 'Bouskoura']);

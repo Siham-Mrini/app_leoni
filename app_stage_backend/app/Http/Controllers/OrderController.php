@@ -61,8 +61,8 @@ class OrderController extends Controller
                 'site_id' => $validated['site_id'],
                 'order_number' => $validated['order_number'],
                 'order_date' => $validated['order_date'],
-                'product_id' => $resolvedItems[0]['product_id'], // fallback for schema
-                'quantity' => collect($resolvedItems)->sum('quantity'), // fallback for schema
+                'product_id' => isset($resolvedItems[0]) ? $resolvedItems[0]['product_id'] : null,
+                'quantity' => collect($resolvedItems)->sum('quantity') ?: 0,
                 'status' => 'en attente',
             ]);
 

@@ -75,6 +75,8 @@ const Commandes = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
+            const msg = error.response?.data?.message || 'Erreur lors du chargement des commandes et fournisseurs. Il se peut que la base soit vide.';
+            alert(msg);
             setLoading(false);
         }
     };

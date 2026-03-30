@@ -34,10 +34,14 @@ class OrderTest extends TestCase
         $response = $this->actingAs($user)->postJson('/api/orders', [
             'supplier_id' => $supplier->id,
             'site_id' => $site->id,
-            'product_id' => $product->id,
-            'quantity' => 10,
             'order_number' => 'ORD-123',
-            'order_date' => '2026-03-18'
+            'order_date' => '2026-03-18',
+            'items' => [
+                [
+                    'part_number' => 'P001',
+                    'quantity' => 10
+                ]
+            ]
         ]);
 
         $response->assertStatus(201)
@@ -65,11 +69,16 @@ class OrderTest extends TestCase
         $order = Order::create([
             'supplier_id' => $supplier->id,
             'site_id' => $site->id,
-            'product_id' => $product->id,
-            'quantity' => 50,
             'status' => 'en attente',
             'order_number' => 'ORD-123',
-            'order_date' => '2026-03-18'
+            'order_date' => '2026-03-18',
+            'product_id' => $product->id, // legacy field as fallback
+            'quantity' => 50,              // legacy field as fallback
+        ]);
+
+        $order->items()->create([
+            'product_id' => $product->id,
+            'quantity' => 50,
         ]);
 
         $response = $this->actingAs($user)->postJson("/api/orders/{$order->id}/receive");
