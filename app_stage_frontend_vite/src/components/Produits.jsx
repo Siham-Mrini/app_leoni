@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { Plus, Edit, Trash2, Search, Package, CheckCircle, XCircle, Wrench, Image as ImageIcon, IndianRupee, Euro, DollarSign, Tag, Activity, MapPin, ChevronDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Package, CheckCircle, XCircle, Wrench, Image as ImageIcon, MapPin, ChevronDown, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Produits = () => {
@@ -17,9 +17,8 @@ const Produits = () => {
     const [currentProduct, setCurrentProduct] = useState({ part_number: '', sku: '', type: 'Tag', family: '', price: 0, image_url: '', initial_quantity: 0, site_id: '', supplier_id: '', emplacement_id: '', boolean_value: 'non', is_installed: false });
     const [isEditing, setIsEditing] = useState(false);
     const [showInstallModal, setShowInstallModal] = useState(false);
-    const [installData, setInstallData] = useState({ product_id: '', site_id: '', quantity: 1, max: 0, product_name: '' });
+    const [installData, setInstallData] = useState({ product_id: '', site_id: '', quantity: 1, max: 0, product_name: '', mode: 'install' });
     
-    // Dynamic values from existing DB products
     const dynamicFamilies = [...new Set(products.map(p => p.family).filter(Boolean))];
     const dynamicTypes = [...new Set(products.map(p => p.type).filter(Boolean))];
 
@@ -39,8 +38,6 @@ const Produits = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching data:', error);
-            const msg = error.response?.data?.message || 'Erreur lors du chargement des données. Vérifiez votre connexion or si la base est vide.';
-            alert(msg);
             setLoading(false);
         }
     };
@@ -90,8 +87,7 @@ const Produits = () => {
             setShowModal(false);
             fetchData();
         } catch (error) {
-            const message = error.response?.data?.message || 'Erreur lors de l’enregistrement du produit.';
-            alert(message);
+            alert(error.response?.data?.message || 'Erreur lors de l’enregistrement.');
         }
     };
 
@@ -106,6 +102,19 @@ const Produits = () => {
         }
     };
 
+    const handleOpenInstallModal = (product, mode = 'install') => {
+        const defaultSite = product.sites?.[0] || (user?.site_id ? { id: user.site_id } : null);
+        setInstallData({
+            product_id: product.id,
+            product_name: product.part_number,
+            site_id: defaultSite?.id || '',
+            mode: mode,
+            quantity: 1,
+            max: mode === 'install' ? (defaultSite?.pivot?.quantity || 0) : (defaultSite?.pivot?.installed_quantity || 0)
+        });
+        setShowInstallModal(true);
+    };
+
     const handleInstall = async (e) => {
         e.preventDefault();
         try {
@@ -117,7 +126,6 @@ const Produits = () => {
         }
     };
 
-
     const handleQuickAssignEmplacement = async (productId, emplacementId) => {
         try {
             await api.put(`/products/${productId}`, { emplacement_id: emplacementId || null });
@@ -127,7 +135,6 @@ const Produits = () => {
         }
     };
 
-    // For employees, show only their site's products; admins see all (or filtered by site)
     const filteredProducts = products.filter(p => {
         const matchesSearch =
             (p.part_number && p.part_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -164,19 +171,17 @@ const Produits = () => {
                 </div>
                 <div className="flex items-center gap-4">
                     <button onClick={() => handleOpenModal()} className="bg-[#075E80] text-white h-18 px-10 rounded-3xl font-black flex items-center gap-4 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-blue-900/20 uppercase tracking-widest text-xs">
-                        <Plus size={24} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-500" /> Nouveau Produit
+                        <Plus size={24} strokeWidth={3} /> Nouveau Produit
                     </button>
                     {user?.role === 'admin' ? (
-                        <div className="relative group">
-                            <select
-                                className="h-18 px-10 bg-white border-2 border-slate-100 text-slate-700 rounded-3xl shadow-sm hover:border-[#075E80]/20 focus:ring-8 focus:ring-[#075E80]/5 focus:border-[#075E80] transition-all font-black text-xs uppercase tracking-widest outline-none cursor-pointer"
-                                value={selectedFilterSite}
-                                onChange={(e) => setSelectedFilterSite(e.target.value)}
-                            >
-                                <option value="">Tous les sites</option>
-                                {sitesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
-                        </div>
+                        <select
+                            className="h-18 px-10 bg-white border-2 border-slate-100 text-slate-700 rounded-3xl shadow-sm hover:border-[#075E80]/20 focus:ring-8 focus:ring-[#075E80]/5 focus:border-[#075E80] transition-all font-black text-xs uppercase tracking-widest outline-none cursor-pointer"
+                            value={selectedFilterSite}
+                            onChange={(e) => setSelectedFilterSite(e.target.value)}
+                        >
+                            <option value="">Tous les sites</option>
+                            {sitesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
                     ) : (
                         <button 
                             onClick={() => setShowAll(!showAll)} 
@@ -191,87 +196,69 @@ const Produits = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-3xl lg:rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 overflow-hidden group">
+            <div className="bg-white rounded-3xl lg:rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
                 {loading ? (
-                    <div className="p-12 lg:p-24 space-y-8 animate-pulse text-center">
-                        <div className="w-24 h-24 bg-slate-50 rounded-full mx-auto relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100/50 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-                        </div>
-                        <div className="h-6 w-48 bg-slate-50 rounded-full mx-auto"></div>
-                        <div className="space-y-3">
-                            <div className="h-3 w-64 bg-slate-50 rounded-full mx-auto opacity-50"></div>
-                            <div className="h-2 w-32 bg-slate-50 rounded-full mx-auto opacity-30"></div>
-                        </div>
+                    <div className="p-24 animate-pulse text-center space-y-4">
+                        <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto"></div>
+                        <div className="h-4 w-48 bg-slate-100 rounded-full mx-auto"></div>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full border-collapse min-w-[800px]">
+                        <table className="w-full border-collapse min-w-[1000px]">
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-100 text-left">
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Part Number</th>
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Info Article</th>
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sites / Stocks</th>
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Localisation</th>
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fournisseur</th>
-                                    <th className="px-5 lg:px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Flux</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Part Number</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Info Article</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sites / Stocks</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Installation</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Localisation</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fournisseur</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Flux</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredProducts.map((product) => (
-                                    <tr key={product.id} className="hover:bg-slate-50/40 transition-colors group">
+                                    <tr key={product.id} className="hover:bg-slate-50/40 transition-colors group text-sm">
+                                        <td className="px-8 py-6 font-black text-slate-900">{product.part_number}</td>
+                                        <td className="px-8 py-6 uppercase font-bold text-slate-500">{product.type} / {product.family}</td>
                                         <td className="px-8 py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="w-16 h-16 bg-white border border-slate-100 rounded-3xl flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[#075E80]/20 transition-all shadow-sm">
-                                                    {product.image_url ? (
-                                                        <img src={product.image_url} alt={product.part_number} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <ImageIcon className="text-slate-200" size={24} />
-                                                    )}
+                                            <div className="h-2 w-40 bg-slate-100 rounded-full overflow-hidden flex">
+                                                <div className="h-full bg-emerald-500" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.installed_quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
+                                                <div className="h-full bg-[#075E80]" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => handleOpenInstallModal(product, 'install')} className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all font-sans">Installer</button>
+                                                <button onClick={() => handleOpenInstallModal(product, 'uninstall')} className="px-3 py-1 bg-slate-50 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all font-sans">Retirer</button>
+                                            </div>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <div className="relative group/loc">
+                                                {product.emplacement ? (
+                                                    <button className="px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest bg-[#075E80]/5 text-[#075E80] border border-[#075E80]/10 flex items-center gap-1">
+                                                        <MapPin size={8} /> {product.emplacement.code}
+                                                    </button>
+                                                ) : <button className="text-[10px] text-emerald-500 font-black uppercase tracking-widest hover:underline">Définir</button>}
+                                                <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-2xl border border-slate-100 hidden group-hover/loc:block z-20 p-2 overflow-y-auto max-h-48 scrollbar-hide">
+                                                    <p className="p-2 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Assigner Emplacement</p>
+                                                    <button onClick={() => handleQuickAssignEmplacement(product.id, null)} className="w-full text-left p-2 text-[9px] font-bold text-rose-500 hover:bg-rose-50 rounded-lg mb-1">Aucun</button>
+                                                    {emplacementsList.map(emp => (
+                                                        <button 
+                                                            key={emp.id} 
+                                                            onClick={() => handleQuickAssignEmplacement(product.id, emp.id)}
+                                                            className={`w-full text-left p-2 text-[9px] font-bold rounded-lg transition-colors ${product.emplacement_id === emp.id ? 'bg-[#075E80] text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                                                        >
+                                                            {emp.code}
+                                                        </button>
+                                                    ))}
                                                 </div>
-                                                <div>
-                                                    <p className="font-black text-slate-900 group-hover:text-[#075E80] transition-colors text-lg">{product.part_number}</p>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">{product.type}</p>
-                                                        <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${product.sites && product.sites.some(s => s.pivot.quantity > 0) ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
-                                                            {product.sites && product.sites.some(s => s.pivot.quantity > 0) ? 'En Stock' : 'Rupture'}
-                                                        </span>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-black text-[#075E80] tracking-wider mb-1 uppercase">{product.sku}</span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{product.family}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <div className="flex flex-col gap-1.5">
-                                                <div className="h-2 w-40 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
-                                                    <div className="h-full bg-emerald-500" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.installed_quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
-                                                    <div className="h-full bg-[#075E80]" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            {product.emplacement ? (
-                                                <span className="px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-[#075E80]/5 text-[#075E80] border border-[#075E80]/10 flex items-center gap-1 w-fit">
-                                                    <MapPin size={8} /> {product.emplacement.code}
-                                                </span>
-                                            ) : <span className="text-[10px] text-slate-300 italic">Non défini</span>}
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            <span className="text-sm font-black text-slate-700">{product.supplier?.name}</span>
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button onClick={() => handleOpenModal(product, true)} className="w-10 h-10 flex items-center justify-center bg-blue-50 text-[#075E80] rounded-xl hover:bg-[#075E80] hover:text-white transition-all shadow-sm">
-                                                    <Edit size={18} />
-                                                </button>
-                                                <button onClick={() => handleDelete(product.id)} className="w-10 h-10 flex items-center justify-center bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm">
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
+                                        <td className="px-8 py-6 font-black text-slate-700">{product.supplier?.name}</td>
+                                        <td className="px-8 py-6 text-right space-x-2">
+                                            <button onClick={() => handleOpenModal(product, true)} className="p-2 bg-blue-50 text-[#075E80] rounded-xl hover:bg-[#075E80] hover:text-white transition-all"><Edit size={16} /></button>
+                                            <button onClick={() => handleDelete(product.id)} className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={16} /></button>
                                         </td>
                                     </tr>
                                 ))}
@@ -281,44 +268,24 @@ const Produits = () => {
                 )}
             </div>
 
-            {/* Installation Modal */}
             {showInstallModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300 overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl w-full max-w-lg my-auto overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 lg:p-10 border-b border-slate-100 flex justify-between items-center bg-emerald-50/50">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-emerald-100 text-emerald-600 rounded-xl lg:rounded-2xl flex items-center justify-center shrink-0">
-                                    <Wrench size={24} className="lg:hidden" />
-                                    <Wrench size={28} className="hidden lg:block" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl lg:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                                        {installData.mode === 'install' ? 'Installation' : 'Désinstallation'}
-                                    </h3>
-                                    <p className="text-[10px] lg:text-sm font-bold uppercase tracking-widest text-emerald-600 truncate max-w-[200px] lg:max-w-none">
-                                        {installData.product_name}
-                                    </p>
-                                </div>
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg my-auto overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-emerald-50/50">
+                            <div>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{installData.mode === 'install' ? 'Installation' : 'Désinstallation'}</h3>
+                                <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">{installData.product_name}</p>
                             </div>
-                            <button onClick={() => setShowInstallModal(false)} className="w-10 h-10 lg:w-12 lg:h-12 flex items-center justify-center text-slate-300 hover:text-slate-900 hover:bg-white rounded-full transition-all shrink-0">
-                                <XCircle size={28} className="lg:hidden" />
-                                <XCircle size={32} className="hidden lg:block" />
-                            </button>
+                            <button onClick={() => setShowInstallModal(false)}><XCircle size={32} className="text-slate-300 hover:text-slate-900" /></button>
                         </div>
-                        <form onSubmit={handleInstall} className="p-6 lg:p-10 space-y-6 lg:space-y-8">
+                        <form onSubmit={handleInstall} className="p-10 space-y-8">
                             <div className="space-y-3">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Site de déploiement</label>
-                                <select
-                                    required
-                                    className="w-full h-14 px-6 border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 font-bold text-slate-700 appearance-none bg-slate-50/50"
-                                    value={installData.site_id}
-                                    onChange={(e) => {
-                                        const siteId = parseInt(e.target.value);
-                                        const site = products.find(p => p.id === installData.product_id)?.sites?.find(s => s.id === siteId);
-                                        const maxQuantity = installData.mode === 'install' ? (site?.pivot.quantity || 0) : (site?.pivot.installed_quantity || 0);
-                                        setInstallData({ ...installData, site_id: e.target.value, max: maxQuantity });
-                                    }}
-                                >
+                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Site</label>
+                                <select required className="w-full h-14 px-6 border-slate-200 rounded-2xl font-bold bg-slate-50" value={installData.site_id} onChange={(e) => {
+                                    const siteId = parseInt(e.target.value);
+                                    const site = products.find(p => p.id === installData.product_id)?.sites?.find(s => s.id === siteId);
+                                    setInstallData({ ...installData, site_id: e.target.value, max: installData.mode === 'install' ? (site?.pivot.quantity || 0) : (site?.pivot.installed_quantity || 0) });
+                                }}>
                                     <option value="">Sélectionner un site</option>
                                     {products.find(p => p.id === installData.product_id)?.sites?.map(s => (
                                         <option key={s.id} value={s.id}>{s.name} (Stock: {installData.mode === 'install' ? s.pivot.quantity : s.pivot.installed_quantity})</option>
@@ -326,113 +293,47 @@ const Produits = () => {
                                 </select>
                             </div>
                             <div className="space-y-3">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Quantité</label>
-                                    <span className="text-xs font-black px-3 py-1 rounded-full uppercase text-emerald-600 bg-emerald-50">Max: {installData.max}</span>
-                                </div>
-                                <input
-                                    required
-                                    type="number"
-                                    min="1"
-                                    max={installData.max}
-                                    className="w-full h-14 px-6 border-slate-200 rounded-2xl focus:ring-4 font-black text-2xl bg-slate-50/50 focus:ring-emerald-500/10 text-[#075E80]"
-                                    value={installData.quantity}
-                                    onChange={(e) => setInstallData({ ...installData, quantity: parseInt(e.target.value) || 0 })}
-                                />
+                                <div className="flex justify-between font-black text-xs uppercase tracking-widest text-slate-400"><span>Quantité</span><span>Max: {installData.max}</span></div>
+                                <input required type="number" min="1" max={installData.max} className="w-full h-14 px-6 border-slate-200 rounded-2xl font-black text-2xl text-[#075E80] bg-slate-50" value={installData.quantity} onChange={(e) => setInstallData({ ...installData, quantity: parseInt(e.target.value) || 0 })} />
                             </div>
-                            <div className="pt-2 flex flex-col sm:flex-row gap-4">
-                                <button type="button" onClick={() => setShowInstallModal(false)} className="flex-1 h-14 lg:h-16 bg-slate-50 text-slate-400 rounded-xl lg:rounded-2xl font-black hover:bg-slate-100 hover:text-slate-600 transition-all text-xs lg:text-base">Annuler</button>
-                                <button type="submit" className="flex-1 h-14 lg:h-16 text-white rounded-xl lg:rounded-2xl font-black transition-all shadow-xl active:scale-95 text-xs lg:text-base bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/20">
-                                    {installData.mode === 'install' ? 'Valider Installation' : 'Valider Désinstallation'}
-                                </button>
-                            </div>
+                            <button type="submit" className="w-full h-16 bg-emerald-600 text-white rounded-2xl font-black shadow-xl hover:bg-emerald-700 transition-all uppercase tracking-widest text-sm">Confirmer</button>
                         </form>
                     </div>
                 </div>
             )}
 
-            {/* Product Add/Edit Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300 overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl w-full max-w-2xl my-auto overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="p-6 lg:p-10 border-b border-slate-100 flex justify-between items-center bg-blue-50/30">
-                            <div className="flex items-center gap-4 lg:gap-6">
-                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-[#075E80] text-white rounded-xl lg:rounded-3xl flex items-center justify-center shrink-0">
-                                    <Package size={24} className="lg:hidden" />
-                                    <Package size={28} className="hidden lg:block" />
-                                </div>
-                                <h3 className="text-xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                                    {isEditing ? 'Modifier l\'Article' : 'Nouvel Article'}
-                                </h3>
-                            </div>
-                            <button onClick={() => setShowModal(false)} className="w-10 h-10 lg:w-14 lg:h-14 flex items-center justify-center text-slate-300 hover:text-slate-900 hover:bg-white rounded-full transition-all shrink-0">
-                                <XCircle size={28} className="lg:hidden" />
-                                <XCircle size={32} className="hidden lg:block" />
-                            </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl my-auto overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-blue-50/30">
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tight">{isEditing ? 'Modifier Article' : 'Nouvel Article'}</h3>
+                            <button onClick={() => setShowModal(false)}><XCircle size={32} className="text-slate-300 hover:text-slate-900" /></button>
                         </div>
-
-                        <form onSubmit={handleSave} className="p-6 lg:p-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                                <div className="space-y-6 lg:space-y-8">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] lg:text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Référence (Part Number)</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            className="w-full h-12 lg:h-14 px-4 lg:px-6 border-slate-100 rounded-xl lg:rounded-2xl focus:ring-4 focus:ring-[#075E80]/5 font-bold text-slate-700 bg-slate-50/50 text-sm lg:text-base"
-                                            value={currentProduct.part_number}
-                                            onChange={(e) => setCurrentProduct({ ...currentProduct, part_number: e.target.value })}
-                                            placeholder="EX: REF-LEONI-001"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Fournisseur</label>
-                                        <select
-                                            required
-                                            className="w-full h-14 px-6 border-slate-100 rounded-2xl focus:ring-4 focus:ring-[#075E80]/5 font-bold text-slate-700 bg-slate-50/50 appearance-none"
-                                            value={currentProduct.supplier_id}
-                                            onChange={(e) => setCurrentProduct({ ...currentProduct, supplier_id: e.target.value })}
-                                        >
-                                            <option value="">Sélectionner un Fournisseur</option>
-                                            {suppliersList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                        </select>
-                                    </div>
+                        <form onSubmit={handleSave} className="p-10 space-y-8">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Référence</label>
+                                    <input required type="text" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.part_number} onChange={(e) => setCurrentProduct({ ...currentProduct, part_number: e.target.value })} />
                                 </div>
-                                <div className="space-y-6 lg:space-y-8">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Type</label>
-                                        <input
-                                            required
-                                            list="types-list"
-                                            className="w-full h-14 px-6 border-slate-100 rounded-2xl focus:ring-4 focus:ring-[#075E80]/5 font-bold text-slate-700 bg-slate-50/50"
-                                            value={currentProduct.type}
-                                            onChange={(e) => setCurrentProduct({ ...currentProduct, type: e.target.value })}
-                                        />
-                                        <datalist id="types-list">
-                                            {dynamicTypes.map(t => <option key={t} value={t} />)}
-                                        </datalist>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Famille</label>
-                                        <input
-                                            required
-                                            list="families-list"
-                                            className="w-full h-14 px-6 border-slate-100 rounded-2xl focus:ring-4 focus:ring-[#075E80]/5 font-bold text-slate-700 bg-slate-50/50"
-                                            value={currentProduct.family}
-                                            onChange={(e) => setCurrentProduct({ ...currentProduct, family: e.target.value })}
-                                        />
-                                        <datalist id="families-list">
-                                            {dynamicFamilies.map(f => <option key={f} value={f} />)}
-                                        </datalist>
-                                    </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Fournisseur</label>
+                                    <select required className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.supplier_id} onChange={(e) => setCurrentProduct({ ...currentProduct, supplier_id: e.target.value })}>
+                                        <option value="">Sélectionner</option>
+                                        {suppliersList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Type</label>
+                                    <input required list="types" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.type} onChange={(e) => setCurrentProduct({ ...currentProduct, type: e.target.value })} />
+                                    <datalist id="types">{dynamicTypes.map(t => <option key={t} value={t} />)}</datalist>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Famille</label>
+                                    <input required list="families" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.family} onChange={(e) => setCurrentProduct({ ...currentProduct, family: e.target.value })} />
+                                    <datalist id="families">{dynamicFamilies.map(f => <option key={f} value={f} />)}</datalist>
                                 </div>
                             </div>
-                            <div className="mt-8 lg:mt-12 flex flex-col sm:flex-row gap-4 lg:gap-6">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-14 lg:h-18 bg-slate-50 text-slate-400 rounded-xl lg:rounded-2xl font-black hover:bg-slate-100 hover:text-slate-600 transition-all uppercase tracking-widest text-[10px] lg:text-xs">Abandonner</button>
-                                <button type="submit" className="flex-2 h-14 lg:h-18 bg-[#075E80] text-white rounded-xl lg:rounded-2xl font-black shadow-2xl shadow-blue-900/20 hover:bg-slate-900 transition-all uppercase tracking-widest text-[10px] lg:text-xs active:scale-95">
-                                    {isEditing ? 'Enregistrer les Modifications' : 'Créer l\'Article'}
-                                </button>
-                            </div>
+                            <button type="submit" className="w-full h-18 bg-[#075E80] text-white rounded-3xl font-black shadow-2xl hover:bg-slate-900 transition-all uppercase tracking-widest text-xs">{isEditing ? 'Enregistrer' : 'Créer'}</button>
                         </form>
                     </div>
                 </div>
