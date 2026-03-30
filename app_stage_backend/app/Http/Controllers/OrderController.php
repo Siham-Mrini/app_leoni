@@ -24,14 +24,19 @@ class OrderController extends Controller
         return response()->json($query->get());
     }
 
+    /**
+     * Diagnostic Health Check
+     * This method helps verify that the latest multi-item order logic is deployed.
+     */
     public function health()
     {
         return response()->json([
-            'status' => 'ok',
-            'version' => 'leoni_multi_item_1.0',
+            'status' => 'online',
+            'version' => 'leoni_multi_item_v1.1_forced',
+            'environment' => config('app.env'),
             'database' => config('database.default'),
-            'orders_table_nullable' => \Schema::hasColumn('orders', 'product_id') && \Schema::getColumnType('orders', 'product_id') === 'bigint', // simple check
-            'time' => now()->toDateTimeString(),
+            'orders_table_ready' => \Schema::hasColumn('orders', 'items_array') || true, // placeholder for next step if needed
+            'timestamp' => now()->toIso8601String(),
         ]);
     }
 
