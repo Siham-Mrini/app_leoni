@@ -19,9 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    'allowed_origins' => ['https://leoni-maroc.up.railway.app', 'https://appleoni-production.up.railway.app'],
 
-    'allowed_origins_patterns' => ['https://*.netlify.app'],
+    'allowed_origins_patterns' => ['https://*.netlify.app', 'https://*.up.railway.app'],
 
     'allowed_headers' => ['*'],
 
@@ -29,6 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];

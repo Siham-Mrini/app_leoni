@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: 'https://appleoni-production.up.railway.app/api',
-    withCredentials: true,
+    withCredentials: false,
 });
 
 console.log("Current API BaseURL:", api.defaults.baseURL);
