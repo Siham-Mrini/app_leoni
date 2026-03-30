@@ -23,14 +23,26 @@ class OrderController extends Controller
     }
 
     /**
-     * Diagnostic Health Check (Signature v2.6_RESCUE)
+     * Diagnostic Health Check (Signature v2.7_VERIFY)
      */
     public function health()
     {
         return response()->json([
             'status' => 'online',
-            'version' => 'leoni_v2.6_RESCUE',
+            'version' => 'leoni_v2.7_VERIFY',
             'timestamp' => now()->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * EMERGENCY VERIFICATION: List all users in DB
+     */
+    public function verifyAdmin()
+    {
+        return response()->json([
+            'users' => \App\Models\User::all(['id', 'name', 'email', 'role']),
+            'count' => \App\Models\User::count(),
+            'last_site' => \App\Models\Site::latest()->first(),
         ]);
     }
 
