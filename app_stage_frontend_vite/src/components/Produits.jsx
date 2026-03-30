@@ -208,8 +208,9 @@ const Produits = () => {
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-100 text-left">
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Part Number</th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Info Article</th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sites / Stocks</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Stock</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Type / Famille</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Statistiques / Sites</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Installation</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Localisation</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fournisseur</th>
@@ -220,11 +221,37 @@ const Produits = () => {
                                 {filteredProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-slate-50/40 transition-colors group text-sm">
                                         <td className="px-8 py-6 font-black text-slate-900">{product.part_number}</td>
+                                        <td className="px-8 py-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-xl font-black text-[#075E80] tracking-tight">
+                                                    {product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) || 0}
+                                                </span>
+                                                <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest leading-none">Pièces</span>
+                                            </div>
+                                        </td>
                                         <td className="px-8 py-6 uppercase font-bold text-slate-500">{product.type} / {product.family}</td>
                                         <td className="px-8 py-6">
-                                            <div className="h-2 w-40 bg-slate-100 rounded-full overflow-hidden flex">
-                                                <div className="h-full bg-emerald-500" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.installed_quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
-                                                <div className="h-full bg-[#075E80]" style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}></div>
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[#075E80]">
+                                                    <span>Stock Disponible</span>
+                                                    <span className="bg-blue-50 px-2 py-0.5 rounded-md">
+                                                        {product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) || 0}
+                                                    </span>
+                                                </div>
+                                                <div className="h-4 w-48 bg-slate-100 rounded-full overflow-hidden flex shadow-inner border border-slate-200/50">
+                                                    <div 
+                                                        className="h-full bg-emerald-500 shadow-[inset_-2px_0_4px_rgba(0,0,0,0.1)] transition-all duration-1000" 
+                                                        style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.installed_quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}
+                                                    ></div>
+                                                    <div 
+                                                        className="h-full bg-[#075E80] transition-all duration-1000" 
+                                                        style={{ width: `${(product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0), 0) / (product.sites?.reduce((acc, s) => acc + (s.pivot?.quantity || 0) + (s.pivot?.installed_quantity || 0), 0) || 1)) * 100}%` }}
+                                                    ></div>
+                                                </div>
+                                                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                                                    <span>Nombre Installé</span>
+                                                    <span>{product.sites?.reduce((acc, s) => acc + (s.pivot?.installed_quantity || 0), 0) || 0}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">

@@ -211,10 +211,10 @@ const Layout = ({ children }) => {
                             <Menu size={24} />
                         </button>
 
-                        <div className="flex items-center gap-3 lg:gap-8">
-                            <img src="/leoni_logo.png" alt="LEONI" className="h-5 lg:h-7 w-auto object-contain" />
-                            <div className="h-5 lg:h-6 w-px bg-slate-200 hidden sm:block"></div>
-                            <img src="/opex_logo.png" alt="OPEX" className="h-5 lg:h-7 w-auto object-contain hidden sm:block" />
+                        <div className="flex items-center gap-4 lg:gap-8 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-2xl border border-slate-50 shadow-sm">
+                            <img src="/leoni_logo.png" alt="LEONI" className="h-6 lg:h-10 w-auto object-contain transition-transform hover:scale-105" />
+                            <div className="h-8 lg:h-12 w-px bg-slate-200 hidden sm:block mx-2"></div>
+                            <img src="/opex_logo.png" alt="OPEX" className="h-20 lg:h-32 w-auto object-contain hidden sm:block scale-110 drop-shadow-md transition-transform hover:scale-125" />
                         </div>
                     </div>
 

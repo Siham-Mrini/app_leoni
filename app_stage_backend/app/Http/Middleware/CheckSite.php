@@ -56,10 +56,12 @@ class CheckSite
                 }
 
                 $order = $request->route('order');
+                $transfer = $request->route('transfer');
                 $site = $request->route('site');
                 
                 $siteId = $siteId 
                          ?? ($order ? $order->site_id : null)
+                         ?? ($transfer ? ($user->site_id == $transfer->to_site_id ? $transfer->to_site_id : $transfer->from_site_id) : null)
                          ?? ($site ? $site->id : null);
             }
         }

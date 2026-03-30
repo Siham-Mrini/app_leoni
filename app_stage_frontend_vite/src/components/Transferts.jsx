@@ -295,20 +295,19 @@ const Transferts = () => {
                                     <div className="space-y-4">
                                         {transfer.status === 'demande' && (
                                             <>
-                                                {/* Valider : source seulement (+ admin/manager) */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
-                                                    <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-[#1a2b4b] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-900 transition-all">
-                                                        <CheckCircle2 size={20} /> Valider la Demande
-                                                    </button>
+                                                {/* Valider / Refuser : SOURCE SEULEMENT (+ admin/manager) */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || (user?.site_id && String(user?.site_id) === String(transfer.from_site_id))) && (
+                                                    <>
+                                                        <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-[#1a2b4b] text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-900 transition-all">
+                                                            <CheckCircle2 size={20} /> Valider la Demande
+                                                        </button>
+                                                        <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
+                                                            Refuser la Demande
+                                                        </button>
+                                                    </>
                                                 )}
-                                                {/* Refuser : source seulement (+ admin/manager) */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
-                                                    <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
-                                                        Refuser la Demande
-                                                    </button>
-                                                )}
-                                                {/* Annuler : source seulement (+ admin/manager) */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {/* Annuler : SOURCE SEULEMENT (+ admin/manager) */}
+                                                {(user?.role === 'admin' || user?.role === 'manager' || (user?.site_id && String(user?.site_id) === String(transfer.from_site_id))) && (
                                                     <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
                                                         Annuler ma Demande
                                                     </button>
@@ -319,19 +318,19 @@ const Transferts = () => {
                                         {transfer.status === 'en cours' && (
                                             <>
                                                 {/* Confirmer réception : source OU destination (les deux) + admin/manager */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {( user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCompleteTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all">
                                                         <CheckCircle2 size={20} /> Confirmer Réception
                                                     </button>
                                                 )}
                                                 {/* Refuser réception : source OU destination (les deux) + admin/manager */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {( user?.role === 'manager' || String(user?.site_id) === String(transfer.to_site_id) || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleRefuseTransfer(transfer.id)} className="w-full h-12 bg-rose-50 text-rose-600 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all border border-rose-100">
                                                         Refuser Réception
                                                     </button>
                                                 )}
                                                 {/* Annuler expédition : source seulement + admin/manager */}
-                                                {(user?.role === 'admin' || user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
+                                                {(user?.role === 'manager' || String(user?.site_id) === String(transfer.from_site_id)) && (
                                                     <button onClick={() => handleCancelTransfer(transfer.id)} className="w-full h-12 bg-white text-slate-400 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-50 transition-all border border-slate-100">
                                                         Annuler Expédition
                                                     </button>

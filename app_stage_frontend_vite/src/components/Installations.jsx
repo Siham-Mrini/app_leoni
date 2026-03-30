@@ -144,7 +144,7 @@ const Installations = () => {
                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Type</th>
                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-center">Installés</th>
                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider text-center">Restants</th>
-                                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Avancement</th>
+                                    <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500 tracking-wider">Avancement (Installé / Total)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -188,15 +188,18 @@ const Installations = () => {
                                                     </td>
                                                     <td className="px-6 py-5">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                            <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                                                                 <div 
-                                                                    className="h-full bg-[#075E80] rounded-full transition-all duration-500" 
+                                                                    className="h-full bg-gradient-to-r from-[#075E80] to-blue-500 rounded-full transition-all duration-700 shadow-sm" 
                                                                     style={{ width: `${percentage}%` }}
                                                                 ></div>
                                                             </div>
-                                                            <span className="text-xs font-semibold text-slate-500 w-9 text-right">
-                                                                {percentage}%
-                                                            </span>
+                                                            <div className="flex flex-col items-end min-w-[70px]">
+                                                                <span className="text-[10px] font-black text-[#075E80] leading-none">{counts.installed} / {total}</span>
+                                                                <span className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">
+                                                                    {percentage}%
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 </tr>

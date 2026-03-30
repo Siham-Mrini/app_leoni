@@ -15,13 +15,6 @@ class TransferController extends Controller
         $user = $request->user();
         $query = Transfer::with(['product', 'fromSite', 'toSite'])->latest();
 
-        if ($user && $user->role === 'employe') {
-            $query->where(function($q) use ($user) {
-                $q->where('from_site_id', $user->site_id)
-                  ->orWhere('to_site_id', $user->site_id);
-            });
-        }
-
         return response()->json($query->get());
     }
 
