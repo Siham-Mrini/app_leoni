@@ -153,11 +153,13 @@ class ProductController extends Controller
     public function destroy(Product $product, Request $request)
     {
         $user = $request->user();
-        if ($user->role !== 'admin' && $product->initial_site_id && (int)$user->site_id !== (int)$product->initial_site_id) {
-            // Check if the site still exists before blocking
-            if (\App\Models\Site::find($product->initial_site_id)) {
-                return response()->json(['message' => 'Non autorisé à supprimer ce produit.'], 403);
-            }
+        
+        // Strict Deletion Rule: Admin or matching Initial Site ONLY
+        // Legacy products (!initial_site_id) are now ADMIN ONLY to protect common resources
+        $canDelete = ($user->role === 'admin') || ($product->initial_site_id && (int)$user->site_id === (int)$product->initial_site_id);
+        
+        if (!$canDelete) {
+            return response()->json(['message' => 'Non autorisé: Vous ne pouvez supprimer que les produits créés par votre site.'], 403);
         }
 
         \App\Models\ActionHistory::create([

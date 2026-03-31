@@ -247,7 +247,7 @@ const Produits = () => {
                                                     <MapPin size={14} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-black text-[#075E80] uppercase tracking-widest">{product.initialSite?.name || 'N/A'}</p>
+                                                    <p className="text-[10px] font-black text-[#075E80] uppercase tracking-widest">{product.initial_site?.name || 'N/A'}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -331,7 +331,7 @@ const Produits = () => {
                                         </td>
                                         <td className="px-8 py-6 font-black text-slate-700">{product.supplier?.name}</td>
                                         <td className="px-8 py-6 text-right space-x-2">
-                                            {(user?.role === 'admin' || !product.initialSite || Number(user?.site_id) === Number(product.initial_site_id)) && (
+                                            {(user?.role === 'admin' || (product.initial_site_id && Number(user?.site_id) === Number(product.initial_site_id))) && (
                                                 <>
                                                     <button onClick={() => handleOpenModal(product, true)} className="p-2 bg-blue-50 text-[#075E80] rounded-xl hover:bg-[#075E80] hover:text-white transition-all"><Edit size={16} /></button>
                                                     <button onClick={() => handleDelete(product.id)} className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={16} /></button>

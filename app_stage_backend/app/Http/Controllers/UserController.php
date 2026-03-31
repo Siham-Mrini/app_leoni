@@ -60,6 +60,11 @@ class UserController extends Controller
 
     public function destroy(\App\Models\User $user)
     {
+        // Revoke all tokens before deletion to ensure immediate logout from all devices
+        if (method_exists($user, 'tokens')) {
+            $user->tokens()->delete();
+        }
+        
         $user->delete();
         return response()->json(null, 204);
     }
