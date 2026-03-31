@@ -227,6 +227,7 @@ const Produits = () => {
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-100 text-left">
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Part Number</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Site Initial</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Stock</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Type / Famille</th>
                                     <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Statistiques / Sites</th>
@@ -239,9 +240,16 @@ const Produits = () => {
                             <tbody className="divide-y divide-slate-50">
                                 {filteredProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-slate-50/40 transition-colors group text-sm">
+                                        <td className="px-8 py-6 font-black text-slate-900">{product.part_number}</td>
                                         <td className="px-8 py-6">
-                                            <div className="font-black text-slate-900">{product.part_number}</div>
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Origine: {product.initialSite?.name || 'N/A'}</div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-[#075E80]">
+                                                    <MapPin size={14} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-[#075E80] uppercase tracking-widest">{product.initialSite?.name || 'N/A'}</p>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
