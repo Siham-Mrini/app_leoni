@@ -353,7 +353,7 @@ const Produits = () => {
                         <form onSubmit={handleSave} className="p-10 space-y-8">
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Référence</label>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Purt Number</label>
                                     <input required type="text" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.part_number} onChange={(e) => setCurrentProduct({ ...currentProduct, part_number: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">

@@ -470,8 +470,8 @@ const Commandes = () => {
                                 <h4 className="text-xs font-black text-[#075E80] uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Plus size={14} strokeWidth={3} /> Ajouter des produits
                                 </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <div className="space-y-2">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                                    <div className="lg:col-span-3 space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Part Number</label>
                                         <input 
                                             type="text"
@@ -487,7 +487,7 @@ const Commandes = () => {
                                             }}
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="lg:col-span-3 space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Type</label>
                                         <input 
                                             list="order-types"
@@ -498,7 +498,7 @@ const Commandes = () => {
                                         />
                                         <datalist id="order-types">{dynamicTypes.map(t => <option key={t} value={t} />)}</datalist>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="lg:col-span-3 space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Famille</label>
                                         <input 
                                             list="order-families"
@@ -509,30 +509,30 @@ const Commandes = () => {
                                         />
                                         <datalist id="order-families">{dynamicFamilies.map(f => <option key={f} value={f} />)}</datalist>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="lg:col-span-2 space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Quantité</label>
-                                        <div className="flex gap-2">
-                                            <input 
-                                                type="number" 
-                                                min="1"
-                                                className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
-                                                value={currentItem.quantity}
-                                                onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
-                                                onKeyDown={(e) => {
-                                                    if(e.key === 'Enter') {
-                                                        e.preventDefault();
-                                                        addItem();
-                                                    }
-                                                }}
-                                            />
-                                            <button 
-                                                type="button" 
-                                                onClick={addItem}
-                                                className="h-12 lg:h-14 px-4 bg-[#075E80] text-white rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center shrink-0"
-                                            >
-                                                <Plus size={20} />
-                                            </button>
-                                        </div>
+                                        <input 
+                                            type="number" 
+                                            min="1"
+                                            className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
+                                            value={currentItem.quantity}
+                                            onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 1})}
+                                            onKeyDown={(e) => {
+                                                if(e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    addItem();
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <button 
+                                            type="button" 
+                                            onClick={addItem}
+                                            className="w-full h-12 lg:h-14 bg-[#075E80] text-white rounded-xl hover:bg-slate-900 transition-all flex items-center justify-center shrink-0"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
                                     </div>
                                 </div>
 
