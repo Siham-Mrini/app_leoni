@@ -12,11 +12,11 @@ class TransferPolicy
      */
     public function before(User $user, string $ability): ?bool
     {
-        if (in_array($user->role, ['admin', 'manager'])) {
-            return true; // L'Admin et le Manager ont tous les droits
+        if ($user->role === 'admin') {
+            return true; // L'Admin (global) a tous les droits
         }
 
-        return null; // Employé -> règles spécifiques
+        return null; // Manager et Employé -> règles spécifiques par site
     }
 
     /**
@@ -48,9 +48,8 @@ class TransferPolicy
      */
     public function validate(User $user, Transfer $transfer): bool
     {
-        // Both SOURCE and DESTINATION can validate the transfer request
-        return (int)$user->site_id === (int)$transfer->from_site_id
-            || (int)$user->site_id === (int)$transfer->to_site_id;
+        // Only the SOURCE site can validate the transfer request
+        return (int)$user->site_id === (int)$transfer->from_site_id;
     }
 
     /**

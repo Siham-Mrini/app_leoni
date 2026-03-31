@@ -195,9 +195,9 @@ const Transferts = () => {
                                              transfer.status === 'validé' ? 'Validé' : 
                                              'En attente'}
                                         </span>
-                                        {user?.site_id && (
-                                            <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${transfer.to_site_id === user.site_id ? 'bg-blue-50 text-[#1a2b4b] border border-blue-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
-                                                {transfer.to_site_id === user.site_id ? 'Entrant' : 'Sortant'}
+                                        {user?.site_id && (Number(transfer.to_site_id) === Number(user.site_id) || Number(transfer.from_site_id) === Number(user.site_id)) && (
+                                            <span className={`px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest ${Number(transfer.to_site_id) === Number(user.site_id) ? 'bg-blue-50 text-[#1a2b4b] border border-blue-100' : 'bg-slate-50 text-slate-500 border border-slate-100'}`}>
+                                                {Number(transfer.to_site_id) === Number(user.site_id) ? 'Entrant' : 'Sortant'}
                                             </span>
                                         )}
                                          <span className="text-slate-300 font-black text-[9px] lg:text-[10px] uppercase tracking-widest flex items-center gap-2">
@@ -302,7 +302,7 @@ const Transferts = () => {
                                     <div className="space-y-4">
                                         {/* Determine if the current user can interact with this transfer */}
                                         {(() => {
-                                            const isAdmin = user?.role === 'admin' || user?.role === 'manager';
+                                            const isAdmin = user?.role === 'admin';
                                             const isSource = String(user?.site_id) === String(transfer.from_site_id);
                                             const isDest   = String(user?.site_id) === String(transfer.to_site_id);
                                             const canAct   = isAdmin || isSource || isDest;
@@ -321,8 +321,8 @@ const Transferts = () => {
 
                                             return (
                                                 <>
-                                                    {/* SOURCE + DESTINATION can validate the request */}
-                                                    {(isAdmin || isSource || isDest) && transfer.status === 'en_attente' && (
+                                                    {/* SOURCE validates the request */}
+                                                    {(isAdmin || isSource) && transfer.status === 'en_attente' && (
                                                         <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
                                                             <CheckCircle2 size={18} /> Valider la Demande
                                                         </button>

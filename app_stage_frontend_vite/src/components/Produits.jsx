@@ -14,7 +14,7 @@ const Produits = () => {
     const [showAll, setShowAll] = useState(false);
     const [selectedFilterSite, setSelectedFilterSite] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [currentProduct, setCurrentProduct] = useState({ part_number: '', sku: '', type: 'Tag', family: '', price: 0, image_url: '', initial_quantity: 0, site_id: '', supplier_id: '', emplacement_id: '', boolean_value: 'non', is_installed: false });
+    const [currentProduct, setCurrentProduct] = useState({ part_number: '', sku: '', type: 'Tag', family: '', price: 0, image_url: '', initial_quantity: 0, initial_site_id: '', supplier_id: '', emplacement_id: '', boolean_value: 'non', is_installed: false });
     const [isEditing, setIsEditing] = useState(false);
     const [showInstallModal, setShowInstallModal] = useState(false);
     const [installData, setInstallData] = useState({ product_id: '', site_id: '', quantity: 1, max: 0, product_name: '', mode: 'install' });
@@ -58,7 +58,7 @@ const Produits = () => {
             }
             setCurrentProduct({
                 ...product,
-                site_id: product.site_id || '',
+                initial_site_id: product.initial_site_id || '',
                 initial_quantity: initialQty,
                 supplier_id: product.supplier_id || '',
                 emplacement_id: product.emplacement_id || '',
@@ -74,7 +74,7 @@ const Produits = () => {
                 price: 0,
                 image_url: '',
                 initial_quantity: 0,
-                site_id: (user?.site_id || (sitesList.length > 0 ? sitesList[0].id : '')),
+                initial_site_id: (user?.site_id || (sitesList.length > 0 ? sitesList[0].id : '')),
                 supplier_id: '',
                 emplacement_id: '',
                 boolean_value: 'non',
@@ -323,8 +323,12 @@ const Produits = () => {
                                         </td>
                                         <td className="px-8 py-6 font-black text-slate-700">{product.supplier?.name}</td>
                                         <td className="px-8 py-6 text-right space-x-2">
-                                            <button onClick={() => handleOpenModal(product, true)} className="p-2 bg-blue-50 text-[#075E80] rounded-xl hover:bg-[#075E80] hover:text-white transition-all"><Edit size={16} /></button>
-                                            <button onClick={() => handleDelete(product.id)} className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={16} /></button>
+                                            {(user?.role === 'admin' || Number(user?.site_id) === Number(product.initial_site_id)) && (
+                                                <>
+                                                    <button onClick={() => handleOpenModal(product, true)} className="p-2 bg-blue-50 text-[#075E80] rounded-xl hover:bg-[#075E80] hover:text-white transition-all"><Edit size={16} /></button>
+                                                    <button onClick={() => handleDelete(product.id)} className="p-2 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={16} /></button>
+                                                </>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -411,15 +415,18 @@ const Produits = () => {
                                         {emplacementsList.map(emp => <option key={emp.id} value={emp.id}>{emp.code}</option>)}
                                     </select>
                                 </div>
-                                {user?.role === 'admin' && (
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Site Affecté</label>
-                                        <select required className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.site_id} onChange={(e) => setCurrentProduct({ ...currentProduct, site_id: e.target.value })}>
-                                            <option value="">Sélectionner un site</option>
-                                            {sitesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                        </select>
-                                    </div>
-                                )}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Site Initial</label>
+                                    <select required 
+                                        disabled={user?.role === 'employe'}
+                                        className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50 disabled:bg-slate-100 disabled:opacity-60" 
+                                        value={currentProduct.initial_site_id} 
+                                        onChange={(e) => setCurrentProduct({ ...currentProduct, initial_site_id: e.target.value })}
+                                    >
+                                        <option value="">Sélectionner un site</option>
+                                        {sitesList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             <button type="submit" className="w-full h-18 bg-[#075E80] text-white rounded-3xl font-black shadow-2xl hover:bg-slate-900 transition-all uppercase tracking-widest text-xs">{isEditing ? 'Enregistrer' : 'Créer'}</button>
                         </form>
