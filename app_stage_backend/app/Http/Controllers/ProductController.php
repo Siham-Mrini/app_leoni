@@ -158,6 +158,8 @@ class ProductController extends Controller
             'record_id' => $product->id,
         ]);
 
+        // Detach from all sites (pivot table cleanup)
+        $product->sites()->detach();
         $product->delete();
         return response()->json(null, 204);
     }

@@ -48,7 +48,9 @@ class TransferPolicy
      */
     public function validate(User $user, Transfer $transfer): bool
     {
-        return (int)$user->site_id === (int)$transfer->from_site_id;
+        // Both SOURCE and DESTINATION can validate the transfer request
+        return (int)$user->site_id === (int)$transfer->from_site_id
+            || (int)$user->site_id === (int)$transfer->to_site_id;
     }
 
     /**

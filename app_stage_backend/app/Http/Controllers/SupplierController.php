@@ -45,6 +45,10 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        // Null out supplier_id on linked products before deletion
+        \App\Models\Product::where('supplier_id', $supplier->id)
+            ->update(['supplier_id' => null]);
+
         $supplier->delete();
         return response()->json(null, 204);
     }

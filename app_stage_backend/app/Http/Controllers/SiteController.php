@@ -42,6 +42,16 @@ class SiteController extends Controller
 
     public function destroy(Site $Site)
     {
+        // Detach all products from this site's pivot table
+        $Site->products()->detach();
+
+        // Null out initial_site_id for products originating from this site
+        \App\Models\Product::where('initial_site_id', $Site->id)
+            ->update(['initial_site_id' => null]);
+
+        // Delete emplacements (cascade from migration, but just to be safe)
+        $Site->emplacements()->delete();
+
         $Site->delete();
         return response()->json(null, 204);
     }

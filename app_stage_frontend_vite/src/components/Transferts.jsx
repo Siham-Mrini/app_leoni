@@ -20,6 +20,14 @@ const Transferts = () => {
     const [transferType, setTransferType] = useState('pull'); // 'pull' or 'push'
     const [sourceStock, setSourceStock] = useState([]);
 
+    // Real-time stock validation
+    const selectedProduct = sourceStock.find(p => String(p.id) === String(newTransfer.product_id));
+    const availableQty = selectedProduct?.pivot?.quantity || 0;
+    const stockError = newTransfer.product_id && newTransfer.quantity > availableQty
+        ? `Stock insuffisant sur le site source. Disponible : ${availableQty}`
+        : null;
+
+
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -292,25 +300,50 @@ const Transferts = () => {
                                      </div>
 
                                     <div className="space-y-4">
-                                        {/* SOURCE ACTIONS */}
-                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'en_attente' && (
-                                            <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
-                                                <CheckCircle2 size={18} /> Valider la Demande
-                                            </button>
-                                        )}
-                                        
-                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.from_site_id)) && transfer.status === 'validé' && (
-                                            <button onClick={() => handleDeliverTransfer(transfer.id)} className="w-full h-14 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30">
-                                                <Truck size={18} /> Marquer en Livraison
-                                            </button>
-                                        )}
+                                        {/* Determine if the current user can interact with this transfer */}
+                                        {(() => {
+                                            const isAdmin = user?.role === 'admin' || user?.role === 'manager';
+                                            const isSource = String(user?.site_id) === String(transfer.from_site_id);
+                                            const isDest   = String(user?.site_id) === String(transfer.to_site_id);
+                                            const canAct   = isAdmin || isSource || isDest;
 
-                                        {/* DESTINATION ACTIONS */}
-                                        {(user?.role === 'manager' || user?.role === 'admin' || String(user?.site_id) === String(transfer.to_site_id)) && transfer.status === 'en_livraison' && (
-                                            <button onClick={() => handleReceiveTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30">
-                                                <Box size={18} /> Confirmer Réception
-                                            </button>
-                                        )}
+                                            if (!canAct && transfer.status !== 'reçu') {
+                                                return (
+                                                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                                        <Activity size={16} className="text-slate-300 shrink-0" />
+                                                        <div>
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Lecture seule</p>
+                                                            <p className="text-[8px] text-slate-300 font-bold">Vous n'êtes pas impliqué dans ce transfert</p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+
+                                            return (
+                                                <>
+                                                    {/* SOURCE + DESTINATION can validate the request */}
+                                                    {(isAdmin || isSource || isDest) && transfer.status === 'en_attente' && (
+                                                        <button onClick={() => handleValidateTransfer(transfer.id)} className="w-full h-14 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/30">
+                                                            <CheckCircle2 size={18} /> Valider la Demande
+                                                        </button>
+                                                    )}
+
+                                                    {/* SOURCE marks as delivered */}
+                                                    {(isAdmin || isSource) && transfer.status === 'validé' && (
+                                                        <button onClick={() => handleDeliverTransfer(transfer.id)} className="w-full h-14 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/30">
+                                                            <Truck size={18} /> Marquer en Livraison
+                                                        </button>
+                                                    )}
+
+                                                    {/* DESTINATION confirms reception */}
+                                                    {(isAdmin || isDest) && transfer.status === 'en_livraison' && (
+                                                        <button onClick={() => handleReceiveTransfer(transfer.id)} className="w-full h-14 bg-emerald-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30">
+                                                            <Box size={18} /> Confirmer Réception
+                                                        </button>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
 
                                         {transfer.status === 'reçu' && (
                                             <div className="flex items-center gap-4 p-5 rounded-2xl border text-emerald-600 bg-emerald-50 border-emerald-100">
@@ -435,18 +468,33 @@ const Transferts = () => {
                                         </select>
                                     </div>
                                     <div className="sm:w-32">
-                                        <input required type="number" min="1" className="w-full h-14 lg:h-18 px-6 bg-slate-50 border-2 border-slate-100 rounded-2xl lg:rounded-3xl font-black text-[#1a2b4b] text-xl transition-all"
+                                        <input required type="number" min="1" max={availableQty || undefined}
+                                            className={`w-full h-14 lg:h-18 px-6 border-2 rounded-2xl lg:rounded-3xl font-black text-xl transition-all ${
+                                                stockError
+                                                ? 'bg-rose-50 border-rose-300 text-rose-600'
+                                                : 'bg-slate-50 border-slate-100 text-[#1a2b4b]'
+                                            }`}
                                             value={newTransfer.quantity}
                                             placeholder="Qté"
-                                            onChange={(e) => setNewTransfer({ ...newTransfer, quantity: parseInt(e.target.value) })}
+                                            onChange={(e) => setNewTransfer({ ...newTransfer, quantity: parseInt(e.target.value) || 1 })}
                                         />
                                     </div>
                                 </div>
+                                {stockError && (
+                                    <div className="flex items-center gap-3 mt-3 px-4 py-3 bg-rose-50 border border-rose-200 rounded-2xl">
+                                        <XCircle size={16} className="text-rose-500 shrink-0" />
+                                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-wide">{stockError}</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="pt-6 lg:pt-10 flex flex-col sm:flex-row gap-4 lg:gap-6">
                                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 h-16 lg:h-20 bg-slate-100 text-slate-400 rounded-2xl lg:rounded-3xl font-black uppercase tracking-widest text-[9px] lg:text-[10px]">Abandonner</button>
-                                <button type="submit" className="flex-[2] h-16 lg:h-20 bg-[#1a2b4b] text-white rounded-2xl lg:rounded-3xl font-black shadow-2xl shadow-blue-900/40 uppercase tracking-widest text-[9px] lg:text-[10px] flex items-center justify-center gap-4 lg:gap-6">
+                                <button type="submit" disabled={!!stockError} className={`flex-[2] h-16 lg:h-20 rounded-2xl lg:rounded-3xl font-black shadow-2xl uppercase tracking-widest text-[9px] lg:text-[10px] flex items-center justify-center gap-4 lg:gap-6 transition-all ${
+                                    stockError
+                                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                    : 'bg-[#1a2b4b] text-white shadow-blue-900/40 hover:bg-slate-900'
+                                }`}>
                                     Confirmer le Transfert <ArrowRight size={24} />
                                 </button>
                             </div>

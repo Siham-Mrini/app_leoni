@@ -41,10 +41,13 @@ class InstallationController extends Controller
     public function install(Request $request)
     {
         $validated = $request->validate([
-            'site_id' => 'required|exists:sites,id',
+            'site_id'    => 'required|exists:sites,id',
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity'   => 'required|integer|min:1',
+            'mode'       => 'nullable|in:install,uninstall',
         ]);
+
+        $mode = $validated['mode'] ?? 'install';
 
         $stock = SiteProduct::where('site_id', $validated['site_id'])
             ->where('product_id', $validated['product_id'])
@@ -54,28 +57,51 @@ class InstallationController extends Controller
             return response()->json(['message' => 'Produit non trouvé dans ce site'], 404);
         }
 
+        $product = \App\Models\Product::find($validated['product_id']);
+        $site    = \App\Models\Site::find($validated['site_id']);
+
+        if ($mode === 'uninstall') {
+            // Remove from installed → put back in available stock
+            if ($validated['quantity'] > $stock->installed_quantity) {
+                return response()->json(['message' => 'La quantité à retirer dépasse le nombre installé'], 400);
+            }
+
+            $stock->installed_quantity -= $validated['quantity'];
+            $stock->quantity           += $validated['quantity'];
+            $stock->save();
+
+            ActionHistory::create([
+                'action_type' => 'DESINSTALLATION',
+                'description' => "Retrait de {$validated['quantity']} unité(s) de [{$product->part_number}] sur le site [{$site->name}] le " . now()->format('d/m/Y à H:i') . ".",
+                'user_id'     => $request->user()->id,
+                'site_id'     => $validated['site_id'],
+            ]);
+
+            return response()->json([
+                'message' => 'Retrait enregistré avec succès',
+                'data'    => $stock
+            ]);
+        }
+
+        // Default: install mode — move from available to installed
         if ($validated['quantity'] > $stock->quantity) {
             return response()->json(['message' => 'La quantité à installer dépasse le stock disponible'], 400);
         }
 
-        // Move quantity from available to installed
-        $stock->quantity -= $validated['quantity'];
+        $stock->quantity           -= $validated['quantity'];
         $stock->installed_quantity += $validated['quantity'];
         $stock->save();
-
-        $product = \App\Models\Product::find($validated['product_id']);
-        $site = \App\Models\Site::find($validated['site_id']);
 
         ActionHistory::create([
             'action_type' => 'INSTALLATION',
             'description' => "Installation de {$validated['quantity']} unité(s) de [{$product->part_number}] sur le site [{$site->name}] le " . now()->format('d/m/Y à H:i') . ".",
-            'user_id' => $request->user()->id,
-            'site_id' => $validated['site_id'],
+            'user_id'     => $request->user()->id,
+            'site_id'     => $validated['site_id'],
         ]);
 
         return response()->json([
             'message' => 'Installation enregistrée avec succès',
-            'data' => $stock
+            'data'    => $stock
         ]);
     }
 }

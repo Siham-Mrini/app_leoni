@@ -380,7 +380,7 @@ const Produits = () => {
                         <form onSubmit={handleSave} className="p-10 space-y-8">
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Purt Number</label>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Part Number</label>
                                     <input required type="text" className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.part_number} onChange={(e) => setCurrentProduct({ ...currentProduct, part_number: e.target.value })} />
                                 </div>
                                 <div className="space-y-2">
@@ -406,7 +406,7 @@ const Produits = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Emplacement</label>
-                                    <select disabled={(user?.role === 'employe' && String(user?.site_id) !== String(currentProduct.initial_site_id))} className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50 disabled:bg-slate-100 disabled:opacity-60" value={currentProduct.emplacement_id} onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}>
+                                    <select disabled={(user?.role === 'employe' && currentProduct.id && String(user?.site_id) !== String(currentProduct.initial_site_id))} className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50 disabled:bg-slate-100 disabled:opacity-60" value={currentProduct.emplacement_id} onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}>
                                         <option value="">Sélectionner un emplacement</option>
                                         {emplacementsList.map(emp => <option key={emp.id} value={emp.id}>{emp.code}</option>)}
                                     </select>
