@@ -25,8 +25,12 @@ const Commandes = () => {
         product_id: '',
         quantity: 1,
         part_number: '',
-        type: ''
+        type: '',
+        family: ''
     });
+    
+    const dynamicFamilies = [...new Set(products.map(p => p.family).filter(Boolean))];
+    const dynamicTypes = [...new Set(products.map(p => p.type).filter(Boolean))];
     const [transferSuggestion, setTransferSuggestion] = useState(null);
 
     const addItem = (e) => {
@@ -41,7 +45,8 @@ const Commandes = () => {
             product_id: currentItem.product_id || '',
             part_number: part.trim(),
             quantity: currentItem.quantity || 1,
-            type: currentItem.type || 'Nouveau'
+            type: currentItem.type || 'Nouveau',
+            family: currentItem.family || 'N/A'
         };
 
         setNewOrder(prev => ({
@@ -49,7 +54,7 @@ const Commandes = () => {
             items: [...(prev.items || []), newItem]
         }));
         
-        setCurrentItem({ product_id: '', quantity: 1, part_number: '', type: '' });
+        setCurrentItem({ product_id: '', quantity: 1, part_number: '', type: '', family: '' });
     };
 
     const removeItem = (index) => {
@@ -98,9 +103,9 @@ const Commandes = () => {
             String(p.part_number || "").trim().toLowerCase() === trimmedPart
         );
         if (product) {
-            setCurrentItem(prev => ({ ...prev, product_id: product.id, type: product.type }));
+            setCurrentItem(prev => ({ ...prev, product_id: product.id, type: product.type || '', family: product.family || '' }));
         } else {
-            setCurrentItem(prev => ({ ...prev, product_id: '', type: 'Nouveau' }));
+            setCurrentItem(prev => ({ ...prev, product_id: '', type: 'Nouveau', family: 'N/A' }));
         }
     }, [currentItem.part_number, products]);
 
@@ -465,8 +470,8 @@ const Commandes = () => {
                                 <h4 className="text-xs font-black text-[#075E80] uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Plus size={14} strokeWidth={3} /> Ajouter des produits
                                 </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="md:col-span-2 space-y-2">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Part Number</label>
                                         <input 
                                             type="text"
@@ -481,6 +486,28 @@ const Commandes = () => {
                                                 }
                                             }}
                                         />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Type</label>
+                                        <input 
+                                            list="order-types"
+                                            className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
+                                            placeholder="Type produit"
+                                            value={currentItem.type}
+                                            onChange={(e) => setCurrentItem({...currentItem, type: e.target.value})}
+                                        />
+                                        <datalist id="order-types">{dynamicTypes.map(t => <option key={t} value={t} />)}</datalist>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase">Famille</label>
+                                        <input 
+                                            list="order-families"
+                                            className="w-full h-12 lg:h-14 px-4 bg-white border-2 border-slate-100 rounded-xl font-bold text-slate-700 focus:border-[#075E80] transition-all text-sm lg:text-base"
+                                            placeholder="Famille produit"
+                                            value={currentItem.family}
+                                            onChange={(e) => setCurrentItem({...currentItem, family: e.target.value})}
+                                        />
+                                        <datalist id="order-families">{dynamicFamilies.map(f => <option key={f} value={f} />)}</datalist>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-bold text-slate-400 uppercase">Quantité</label>
@@ -521,7 +548,7 @@ const Commandes = () => {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-slate-800 text-sm">{item.part_number}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{item.type} • {item.quantity} QTE</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{item.type} • {item.family} • {item.quantity} QTE</p>
                                                     </div>
                                                 </div>
                                                 <button 

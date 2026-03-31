@@ -127,6 +127,8 @@ class OrderController extends Controller
             'items' => 'required|array|min:1',
             'items.*.part_number' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.type' => 'nullable|string',
+            'items.*.family' => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($validated, $request) {
@@ -137,8 +139,8 @@ class OrderController extends Controller
                     ['part_number' => $item['part_number']],
                     [
                         'sku' => uniqid('SKU_'),
-                        'type' => 'N/A',
-                        'family' => 'N/A',
+                        'type' => $item['type'] ?? 'N/A',
+                        'family' => $item['family'] ?? 'N/A',
                         'supplier_id' => $validated['supplier_id'],
                         'initial_site_id' => $validated['site_id']
                     ]
