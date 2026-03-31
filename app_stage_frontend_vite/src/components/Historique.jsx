@@ -199,17 +199,7 @@ const Historique = () => {
                                                             </div>
                                                         </div>
                                                     )}
-                                                    {log.record_id && (
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300">
-                                                                <Activity size={14} />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Part Number</p>
-                                                                <p className="text-[10px] font-black text-slate-500 uppercase">#{log.record_id}</p>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                   
                                                 </div>
                                             </div>
                                         </div>

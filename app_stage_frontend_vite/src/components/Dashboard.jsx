@@ -180,7 +180,7 @@ const EmployeeDashboard = () => {
                     </div>
                     <div>
                         <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-1">Stock disponible sur votre site</p>
-                        <p className="text-3xl lg:text-5xl font-black tracking-tighter">{totalSiteStock} <span className="text-xl lg:text-2xl text-white/50">unités</span></p>
+                        <p className="text-3xl lg:text-5xl font-black tracking-tighter">{totalSiteStock} <span className="text-xl lg:text-2xl text-white/50 tracking-wider ml-2">unités</span></p>
                     </div>
                 </div>
                 <button onClick={() => navigate('/produits')}

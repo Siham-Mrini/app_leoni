@@ -113,9 +113,27 @@ class ProductController extends Controller
             'is_installed' => 'sometimes|boolean',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'emplacement_id' => 'nullable|exists:emplacements,id',
+            'initial_quantity' => 'nullable|integer|min:0',
         ]);
 
         $product->fill($validated)->save();
+
+        if ($request->has('initial_quantity')) {
+            $user = $request->user();
+            $targetSiteId = ($user->role === 'employe') ? $user->site_id : ($request->input('site_id') ?: $product->initial_site_id);
+            if ($targetSiteId) {
+                $siteProduct = $product->sites()->where('site_id', $targetSiteId)->first();
+                if ($siteProduct) {
+                    $siteProduct->pivot->quantity = $validated['initial_quantity'];
+                    $siteProduct->pivot->save();
+                } else {
+                    $product->sites()->attach($targetSiteId, [
+                        'quantity' => $validated['initial_quantity'],
+                        'installed_quantity' => 0,
+                    ]);
+                }
+            }
+        }
 
         \App\Models\ActionHistory::create([
             'action_type' => 'UPDATE',

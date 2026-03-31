@@ -48,9 +48,18 @@ const Produits = () => {
 
     const handleOpenModal = (product = null, editing = false) => {
         if (product) {
+            let initialQty = 0;
+            if (user?.role === 'employe' && user?.site_id) {
+                const mySite = product.sites?.find(s => String(s.id) === String(user.site_id));
+                initialQty = mySite?.pivot?.quantity || 0;
+            } else {
+                const initSite = product.sites?.find(s => String(s.id) === String(product.initial_site_id));
+                initialQty = initSite?.pivot?.quantity || 0;
+            }
             setCurrentProduct({
                 ...product,
                 site_id: product.site_id || '',
+                initial_quantity: initialQty,
                 supplier_id: product.supplier_id || '',
                 emplacement_id: product.emplacement_id || '',
                 boolean_value: product.boolean_value || 'non',
@@ -103,7 +112,17 @@ const Produits = () => {
     };
 
     const handleOpenInstallModal = (product, mode = 'install') => {
-        const defaultSite = product.sites?.[0] || (user?.site_id ? { id: user.site_id } : null);
+        let defaultSite = null;
+        if (user?.role === 'employe') {
+            defaultSite = product.sites?.find(s => String(s.id) === String(user.site_id));
+        } else {
+            defaultSite = product.sites?.[0];
+        }
+        
+        if (!defaultSite && user?.site_id) {
+            defaultSite = { id: user.site_id };
+        }
+
         setInstallData({
             product_id: product.id,
             product_name: product.part_number,
@@ -220,7 +239,10 @@ const Produits = () => {
                             <tbody className="divide-y divide-slate-50">
                                 {filteredProducts.map((product) => (
                                     <tr key={product.id} className="hover:bg-slate-50/40 transition-colors group text-sm">
-                                        <td className="px-8 py-6 font-black text-slate-900">{product.part_number}</td>
+                                        <td className="px-8 py-6">
+                                            <div className="font-black text-slate-900">{product.part_number}</div>
+                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Origine: {product.initialSite?.name || 'N/A'}</div>
+                                        </td>
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
                                                 <span className="text-xl font-black text-[#075E80] tracking-tight">
@@ -267,33 +289,36 @@ const Produits = () => {
                                                         <MapPin size={8} /> {product.emplacement.code}
                                                     </button>
                                                 ) : <button className="text-[10px] text-emerald-500 font-black uppercase tracking-widest hover:underline">Définir</button>}
-                                                <div className="absolute left-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-100 hidden group-hover/loc:block z-[100] p-3 overflow-y-auto max-h-64 scrollbar-hide animate-in slide-in-from-top-2 duration-200 ring-4 ring-[#075E80]/5">
-                                                    <div className="px-3 py-2 border-b border-slate-50 mb-2">
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assignation Emplacement</p>
+                                                
+                                                {(user?.role === 'admin' || String(user?.site_id) === String(product.initial_site_id)) && (
+                                                    <div className="absolute left-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-100 hidden group-hover/loc:block z-[100] p-3 overflow-y-auto max-h-64 scrollbar-hide animate-in slide-in-from-top-2 duration-200 ring-4 ring-[#075E80]/5">
+                                                        <div className="px-3 py-2 border-b border-slate-50 mb-2">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assignation Emplacement</p>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => handleQuickAssignEmplacement(product.id, null)} 
+                                                            className="w-full text-left px-4 py-2.5 text-[10px] font-black text-rose-500 hover:bg-rose-50 rounded-xl mb-2 flex items-center gap-2 transition-colors"
+                                                        >
+                                                            <XCircle size={14} /> Ne pas définir
+                                                        </button>
+                                                        <div className="space-y-1">
+                                                            {emplacementsList.map(emp => (
+                                                                <button 
+                                                                    key={emp.id} 
+                                                                    onClick={() => handleQuickAssignEmplacement(product.id, emp.id)}
+                                                                    className={`w-full text-left px-4 py-2.5 text-[10px] font-black rounded-xl transition-all flex items-center gap-3 ${
+                                                                        product.emplacement_id === emp.id 
+                                                                        ? 'bg-[#075E80] text-white shadow-lg shadow-blue-900/20' 
+                                                                        : 'text-slate-600 hover:bg-slate-50 hover:pl-6'
+                                                                    }`}
+                                                                >
+                                                                    <MapPin size={12} className={product.emplacement_id === emp.id ? 'text-white' : 'text-slate-300'} />
+                                                                    {emp.code}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                    <button 
-                                                        onClick={() => handleQuickAssignEmplacement(product.id, null)} 
-                                                        className="w-full text-left px-4 py-2.5 text-[10px] font-black text-rose-500 hover:bg-rose-50 rounded-xl mb-2 flex items-center gap-2 transition-colors"
-                                                    >
-                                                        <XCircle size={14} /> Ne pas définir
-                                                    </button>
-                                                    <div className="space-y-1">
-                                                        {emplacementsList.map(emp => (
-                                                            <button 
-                                                                key={emp.id} 
-                                                                onClick={() => handleQuickAssignEmplacement(product.id, emp.id)}
-                                                                className={`w-full text-left px-4 py-2.5 text-[10px] font-black rounded-xl transition-all flex items-center gap-3 ${
-                                                                    product.emplacement_id === emp.id 
-                                                                    ? 'bg-[#075E80] text-white shadow-lg shadow-blue-900/20' 
-                                                                    : 'text-slate-600 hover:bg-slate-50 hover:pl-6'
-                                                                }`}
-                                                            >
-                                                                <MapPin size={12} className={product.emplacement_id === emp.id ? 'text-white' : 'text-slate-300'} />
-                                                                {emp.code}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 font-black text-slate-700">{product.supplier?.name}</td>
@@ -328,7 +353,9 @@ const Produits = () => {
                                     setInstallData({ ...installData, site_id: e.target.value, max: installData.mode === 'install' ? (site?.pivot.quantity || 0) : (site?.pivot.installed_quantity || 0) });
                                 }}>
                                     <option value="">Sélectionner un site</option>
-                                    {products.find(p => p.id === installData.product_id)?.sites?.map(s => (
+                                    {products.find(p => p.id === installData.product_id)?.sites
+                                        ?.filter(s => user?.role === 'admin' || String(s.id) === String(user?.site_id))
+                                        .map(s => (
                                         <option key={s.id} value={s.id}>{s.name} (Stock: {installData.mode === 'install' ? s.pivot.quantity : s.pivot.installed_quantity})</option>
                                     ))}
                                 </select>
@@ -379,9 +406,9 @@ const Produits = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Emplacement</label>
-                                    <select className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50" value={currentProduct.emplacement_id} onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}>
+                                    <select disabled={(user?.role === 'employe' && String(user?.site_id) !== String(currentProduct.initial_site_id))} className="w-full h-14 px-6 border-slate-100 rounded-2xl font-bold bg-slate-50 disabled:bg-slate-100 disabled:opacity-60" value={currentProduct.emplacement_id} onChange={(e) => setCurrentProduct({ ...currentProduct, emplacement_id: e.target.value })}>
                                         <option value="">Sélectionner un emplacement</option>
-                                        {emplacementsList.map(e => <option key={e.id} value={e.id}>{e.code}</option>)}
+                                        {emplacementsList.map(emp => <option key={emp.id} value={emp.id}>{emp.code}</option>)}
                                     </select>
                                 </div>
                                 {user?.role === 'admin' && (
