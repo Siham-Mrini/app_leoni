@@ -202,6 +202,12 @@ class OrderController extends Controller
                     'product_id' => $item->product_id,
                 ]);
 
+                if (!$siteProduct->exists) {
+                    $siteProduct->quantity = 0;
+                    $siteProduct->installed_quantity = 0;
+                    $siteProduct->pending_quantity = 0;
+                }
+
                 $siteProduct->quantity += $item->quantity;
                 $siteProduct->save();
             }

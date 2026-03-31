@@ -49,7 +49,8 @@ class TransferPolicy
     public function validate(User $user, Transfer $transfer): bool
     {
         // Only the SOURCE site can validate the transfer request
-        return (int)$user->site_id === (int)$transfer->from_site_id;
+        if (!$user->site_id || !$transfer->from_site_id) return false;
+        return (string)$user->site_id === (string)$transfer->from_site_id;
     }
 
     /**
@@ -57,7 +58,9 @@ class TransferPolicy
      */
     public function deliver(User $user, Transfer $transfer): bool
     {
-        return (int)$user->site_id === (int)$transfer->from_site_id;
+        // Must be the SOURCE site to deliver
+        if (!$user->site_id || !$transfer->from_site_id) return false;
+        return (string)$user->site_id === (string)$transfer->from_site_id;
     }
 
     /**
@@ -65,6 +68,8 @@ class TransferPolicy
      */
     public function receive(User $user, Transfer $transfer): bool
     {
-        return (int)$user->site_id === (int)$transfer->to_site_id;
+        // Only the DESTINATION site can confirm reception
+        if (!$user->site_id || !$transfer->to_site_id) return false;
+        return (string)$user->site_id === (string)$transfer->to_site_id;
     }
 }

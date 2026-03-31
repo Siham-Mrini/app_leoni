@@ -308,7 +308,9 @@ const Emplacements = () => {
                                     onChange={(e) => setFormData({ ...formData, site_id: e.target.value })}
                                 >
                                     <option value="">Sélectionner un site</option>
-                                    {sites.map(site => (
+                                    {sites
+                                        .filter(s => user?.role === 'admin' || Number(s.id) === Number(user?.site_id))
+                                        .map(site => (
                                         <option key={site.id} value={site.id}>{site.name}</option>
                                     ))}
                                 </select>

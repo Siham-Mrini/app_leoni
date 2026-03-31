@@ -9,9 +9,12 @@ class EmplacementController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Emplacement::with(['site', 'products.sites']);
         
-        if ($request->has('site_id')) {
+        if ($user->role !== 'admin') {
+            $query->where('site_id', $user->site_id);
+        } elseif ($request->has('site_id')) {
             $query->where('site_id', $request->site_id);
         }
         

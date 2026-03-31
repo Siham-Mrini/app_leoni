@@ -126,7 +126,8 @@ const Transferts = () => {
         if (window.confirm('Valider la réception ? Le stock sera augmenté sur votre site.')) {
             try {
                 await api.post(`/transfers/${id}/mark-as-received`);
-                fetchData();
+                await fetchData();
+                alert('Réception confirmée ! Le stock a été mis à jour.');
             } catch (error) {
                 alert(error.response?.data?.message || 'Erreur lors de la confirmation de réception.');
             }

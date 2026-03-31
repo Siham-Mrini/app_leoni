@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const baseURL = isLocal ? 'http://localhost:8000/api' : 'https://appleoni-production.up.railway.app/api';
+
 const api = axios.create({
-    baseURL: 'https://appleoni-production.up.railway.app/api',
+    baseURL: baseURL,
     withCredentials: false,
 });
 
