@@ -154,7 +154,10 @@ class ProductController extends Controller
     {
         $user = $request->user();
         if ($user->role !== 'admin' && $product->initial_site_id && (int)$user->site_id !== (int)$product->initial_site_id) {
-            return response()->json(['message' => 'Non autorisé à supprimer ce produit.'], 403);
+            // Check if the site still exists before blocking
+            if (\App\Models\Site::find($product->initial_site_id)) {
+                return response()->json(['message' => 'Non autorisé à supprimer ce produit.'], 403);
+            }
         }
 
         \App\Models\ActionHistory::create([

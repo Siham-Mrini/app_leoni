@@ -9,14 +9,14 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (token) {
             api.get('/me')
                 .then(response => {
                     setUser(response.data);
                 })
                 .catch(() => {
-                    localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
                     setUser(null);
                 })
                 .finally(() => {
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const response = await api.post('/login', { email, password });
         const { access_token, user } = response.data;
-        localStorage.setItem('token', access_token);
+        sessionStorage.setItem('token', access_token);
         setUser(user);
         return user;
     };
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
         try {
             await api.post('/logout');
         } finally {
-            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
             setUser(null);
         }
     };

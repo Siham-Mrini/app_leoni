@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
-import { Plus, Edit, Trash2, Search, UserCheck, XCircle, Shield, Building2, Briefcase, Mail, Key, ShieldCheck, UserCircle, Loader, ArrowRight, UserPlus, Users } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, UserCheck, XCircle, Shield, Building2, Briefcase, Mail, Key, ShieldCheck, UserCircle, Loader, ArrowRight, UserPlus, Users, Eye, EyeOff } from 'lucide-react';
 
 const Utilisateurs = () => {
     const [users, setUsers] = useState([]);
@@ -11,6 +11,7 @@ const Utilisateurs = () => {
     const [showModal, setShowModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     
     // Form state
     const [currentUser, setCurrentUser] = useState({
@@ -70,6 +71,7 @@ const Utilisateurs = () => {
             });
             setIsEditing(false);
         }
+        setShowPassword(false);
         setShowModal(true);
     };
 
@@ -242,9 +244,26 @@ const Utilisateurs = () => {
                                     <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">Email Professionnel</label>
                                     <input required type="email" className="w-full h-16 px-6 bg-slate-50/50 border-2 border-slate-50 rounded-2xl font-black text-slate-700 focus:ring-8 focus:ring-[#1a2b4b]/5 focus:border-[#1a2b4b] transition-all" value={currentUser.email} onChange={(e) => setCurrentUser({ ...currentUser, email: e.target.value })} />
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2 relative">
                                     <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">Clé de sécurité {isEditing && '(Optionnel)'}</label>
-                                    <input type="password" required={!isEditing} minLength="8" className="w-full h-16 px-6 bg-slate-50/50 border-2 border-slate-50 rounded-2xl font-black text-slate-700 focus:ring-8 focus:ring-[#1a2b4b]/5 focus:border-[#1a2b4b] transition-all" value={currentUser.password} onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })} placeholder="••••••••" />
+                                    <div className="relative">
+                                        <input 
+                                            type={showPassword ? "text" : "password"} 
+                                            required={!isEditing} 
+                                            minLength="8" 
+                                            className="w-full h-16 px-6 bg-slate-50/50 border-2 border-slate-50 rounded-2xl font-black text-slate-700 focus:ring-8 focus:ring-[#1a2b4b]/5 focus:border-[#1a2b4b] transition-all" 
+                                            value={currentUser.password} 
+                                            onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })} 
+                                            placeholder="••••••••" 
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#1a2b4b] transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
